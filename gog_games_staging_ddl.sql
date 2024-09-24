@@ -1,5 +1,5 @@
 --DDLs
-CREATE TABLE load_tracker (
+CREATE TABLE gog_games_load_tracker (
     load_number INTEGER PRIMARY KEY AUTOINCREMENT
 );
 
@@ -45,4 +45,9 @@ CREATE TABLE gog_games_staging AS
 );
 
 --DML: auto-increment the load number, and keep track of it per-load
-INSERT INTO load_tracker DEFAULT VALUES;
+INSERT INTO gog_games_load_tracker DEFAULT VALUES;
+
+SELECT MAX(load_number) FROM load_tracker;
+
+INSERT INTO products (stage_record_loaded_datetime, stage_record_filename, stage_load_number, id, title, ...)
+VALUES (datetime('now'), 'myfile.csv', (SELECT MAX(load_number) FROM load_tracker), '123', 'My Product', ...);

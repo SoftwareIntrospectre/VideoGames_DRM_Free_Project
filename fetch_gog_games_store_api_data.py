@@ -34,42 +34,45 @@ def append_to_csv(products, csv_filename):
     new_data = []  # List to hold data for each product
     for product in products:
         data_entry = {
-            "id": product.get('id'),  # Product ID
-            "title": product.get('title'),  # Product title
-            "releaseDate": format_date(product.get('releaseDate')),  # Formatted release date
-            "storeReleaseDate": format_date(product.get('storeReleaseDate')),  # Formatted store release date
-            "FinalPrice": clean_price(safe_get_price(product, 'final')),  # Cleaned final price
-            "OriginalPrice": clean_price(safe_get_price(product, 'base')),  # Cleaned original price
-            "PriceDiscountPercentage": clean_discount(safe_get_discount(product)),  # Cleaned discount percentage
-            "PriceDiscountAmount": safe_get_discount_amount(product),  # Discount amount
-            "PriceCurrency": safe_get_currency(product),  # Currency
-            "productState": product.get('productState'),  # Product state
-            "storeLink": product.get('storeLink')  # Product store link
+            "id": wrap_with_carets(product.get('id')),
+            "title": wrap_with_carets(product.get('title')),
+            "releaseDate": wrap_with_carets(format_date(product.get('releaseDate'))),
+            "storeReleaseDate": wrap_with_carets(format_date(product.get('storeReleaseDate'))),
+            "FinalPrice": wrap_with_carets(clean_price(safe_get_price(product, 'final'))),
+            "OriginalPrice": wrap_with_carets(clean_price(safe_get_price(product, 'base'))),
+            "PriceDiscountPercentage": wrap_with_carets(clean_discount(safe_get_discount(product))),
+            "PriceDiscountAmount": wrap_with_carets(safe_get_discount_amount(product)),
+            "PriceCurrency": wrap_with_carets(safe_get_currency(product)),
+            "productState": wrap_with_carets(product.get('productState')),
+            "storeLink": wrap_with_carets(product.get('storeLink')),
+            # Single columns for Developer and Publisher
+            "Developer": wrap_with_carets(product.get('developers', [None])[0]),
+            "Publisher": wrap_with_carets(product.get('publishers', [None])[0]),
+            # Limited columns for Operating Systems with length check
+            "OperatingSystem1": wrap_with_carets(product.get('operatingSystems')[0] if len(product.get('operatingSystems', [])) > 0 else None),
+            "OperatingSystem2": wrap_with_carets(product.get('operatingSystems')[1] if len(product.get('operatingSystems', [])) > 1 else None),
+            "OperatingSystem3": wrap_with_carets(product.get('operatingSystems')[2] if len(product.get('operatingSystems', [])) > 2 else None),
+            # Fixed columns for Tags with length check
+            "Tag1": wrap_with_carets(product.get('tags')[0] if len(product.get('tags', []) ) > 0 else None),
+            "Tag2": wrap_with_carets(product.get('tags')[1] if len(product.get('tags', []) ) > 1 else None),
+            "Tag3": wrap_with_carets(product.get('tags')[2] if len(product.get('tags', []) ) > 2 else None),
+            "Tag4": wrap_with_carets(product.get('tags')[3] if len(product.get('tags', []) ) > 3 else None),
+            "Tag5": wrap_with_carets(product.get('tags')[4] if len(product.get('tags', []) ) > 4 else None),
+            "Tag6": wrap_with_carets(product.get('tags')[5] if len(product.get('tags', []) ) > 5 else None),
+            "Tag7": wrap_with_carets(product.get('tags')[6] if len(product.get('tags', []) ) > 6 else None),
+            "Tag8": wrap_with_carets(product.get('tags')[7] if len(product.get('tags', []) ) > 7 else None),
+            "Tag9": wrap_with_carets(product.get('tags')[8] if len(product.get('tags', []) ) > 8 else None),
+            "Tag10": wrap_with_carets(product.get('tags')[9] if len(product.get('tags', []) ) > 9 else None),
         }
 
-        # Dynamically add Developer, Publisher, OperatingSystem, and Tag columns
-        add_dynamic_columns(data_entry, product, 'developers', 'Developer')
-        add_dynamic_columns(data_entry, product, 'publishers', 'Publisher')
-        add_dynamic_columns(data_entry, product, 'operatingSystems', 'OperatingSystem')
-        add_dynamic_columns(data_entry, product, 'tags', 'Tag', key_sub='slug')  # Use slug for tags
+        new_data.append(data_entry)
 
-        new_data.append(data_entry)  # Add the product's data to the list
+    new_df = pd.DataFrame(new_data)
 
-    new_df = pd.DataFrame(new_data)  # Create a DataFrame from the list of product data
-
-    # Append to CSV with pipe delimiter
     if os.path.isfile(csv_filename):
-        new_df.to_csv(csv_filename, mode='a', header=False, index=False, sep='|')  # Append data if file exists
+        new_df.to_csv(csv_filename, mode='a', header=False, index=False, sep='|')
     else:
-        new_df.to_csv(csv_filename, mode='w', header=True, index=False, sep='|')  # Create a new file with headers
-
-def add_dynamic_columns(data_entry, product, key, prefix, key_sub=None):
-    """Dynamically add columns for Developers, Publishers, Operating Systems, and Tags."""
-    items = product.get(key, [])
-    if items:  # Only proceed if there are items
-        for i, item in enumerate(items):
-            column_name = f"{prefix}{i + 1}"
-            data_entry[column_name] = item.get(key_sub) if key_sub else item  # Use key_sub if provided
+        new_df.to_csv(csv_filename, mode='w', header=True, index=False, sep='|')
 
 def format_date(date_str):
     """Convert date string to YYYY-MM-DD format, or return None if invalid."""
@@ -115,6 +118,12 @@ def safe_get_currency(product):
     if price_info and 'finalMoney' in price_info:
         return price_info['finalMoney'].get('currency', None)
     return None
+
+def wrap_with_carets(value):
+    """Wrap a value with carets. If None or empty, return ^^."""
+    if value is None or value == '':
+        return '^^'
+    return f'^{value}^'
 
 def main():
     csv_filename = f"GOG_Games_List_{datetime.now().strftime('%Y%m%d')}.csv"
