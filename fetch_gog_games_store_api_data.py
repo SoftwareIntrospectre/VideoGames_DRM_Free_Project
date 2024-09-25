@@ -45,14 +45,11 @@ def append_to_csv(products, csv_filename):
             "PriceCurrency": wrap_with_carets(safe_get_currency(product)),
             "productState": wrap_with_carets(product.get('productState')),
             "storeLink": wrap_with_carets(product.get('storeLink')),
-            # Single columns for Developer and Publisher
             "Developer": wrap_with_carets(product.get('developers', [None])[0]),
             "Publisher": wrap_with_carets(product.get('publishers', [None])[0]),
-            # Limited columns for Operating Systems with length check
             "OperatingSystem1": wrap_with_carets(product.get('operatingSystems')[0] if len(product.get('operatingSystems', [])) > 0 else None),
             "OperatingSystem2": wrap_with_carets(product.get('operatingSystems')[1] if len(product.get('operatingSystems', [])) > 1 else None),
             "OperatingSystem3": wrap_with_carets(product.get('operatingSystems')[2] if len(product.get('operatingSystems', [])) > 2 else None),
-            # Fixed columns for Tags with length check
             "Tag1": wrap_with_carets(product.get('tags')[0] if len(product.get('tags', []) ) > 0 else None),
             "Tag2": wrap_with_carets(product.get('tags')[1] if len(product.get('tags', []) ) > 1 else None),
             "Tag3": wrap_with_carets(product.get('tags')[2] if len(product.get('tags', []) ) > 2 else None),
@@ -134,4 +131,4 @@ def main():
         append_to_csv(products, csv_filename)  # Append fetched products to the CSV
 
 if __name__ == "__main__":
-    main()  # Run the scraper
+    main()  # Run the script
