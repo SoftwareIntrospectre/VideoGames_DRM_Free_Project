@@ -136,7 +136,7 @@ def process_csv(file_path):
     db_connection.close()
 
 if __name__ == '__main__':
-    # csv_filename = "GOG_Games_List_20240924.csv"
+    # csv_filename = "GOG_Games_List_20240925.csv"
     csv_filename = f"GOG_Games_List_{datetime.now().strftime('%Y%m%d')}.csv"
 
     process_csv(csv_filename)

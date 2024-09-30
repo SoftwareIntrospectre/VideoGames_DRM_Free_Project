@@ -17,61 +17,28 @@ def create_connection(database_config):
         print(f"The error '{e}' occurred")
     return connection
 
-def create_gog_games_staging_table(connection):
+def execute_sql_file(connection, file_path):
     """
-    Create the gog_games_staging table in the database.
+    Execute SQL commands from a file.
 
     :param connection: Connection object to the MySQL database.
-    """
-    create_table_query = """
-    CREATE TABLE IF NOT EXISTS gog_games_staging (
-        stage_record_key INT AUTO_INCREMENT PRIMARY KEY,
-        stage_record_loaded_datetime DATETIME NOT NULL,
-        stage_record_filename VARCHAR(255) NOT NULL,
-        game_id INT NOT NULL,
-        game_title VARCHAR(255) NOT NULL,
-        game_release_date DATE,
-        store_release_date DATE,
-        final_price DECIMAL(10, 2),
-        original_price DECIMAL(10, 2),
-        price_discount_percentage DECIMAL(5, 2),
-        price_discount_amount DECIMAL(10, 2),
-        price_currency VARCHAR(10),
-        product_state VARCHAR(50),
-        store_link VARCHAR(255),
-        developer VARCHAR(255),
-        publisher VARCHAR(255),
-        operating_system_1 VARCHAR(50),
-        operating_system_2 VARCHAR(50),
-        operating_system_3 VARCHAR(50),
-        tag1 VARCHAR(50),
-        tag2 VARCHAR(50),
-        tag3 VARCHAR(50),
-        tag4 VARCHAR(50),
-        tag5 VARCHAR(50),
-        tag6 VARCHAR(50),
-        tag7 VARCHAR(50),
-        tag8 VARCHAR(50),
-        tag9 VARCHAR(50),
-        tag10 VARCHAR(50),
-        tag11 VARCHAR(50),
-        tag12 VARCHAR(50),
-        tag13 VARCHAR(50),
-        tag14 VARCHAR(50),
-        tag15 VARCHAR(50),
-        tag16 VARCHAR(50),
-        tag17 VARCHAR(50),
-        tag18 VARCHAR(50)
-    );
+    :param file_path: Path to the SQL file to execute.
     """
     cursor = connection.cursor()
     try:
-        cursor.execute(create_table_query)
-        print("Table 'gog_games_staging' created successfully.")
-    except Error as err:
-        print(f"Error: {err}")
+        with open(file_path, 'r') as sql_file:
+            sql_commands = sql_file.read()
+            for command in sql_commands.split(';'):
+                command = command.strip()
+                if command:  # Execute non-empty commands only
+                    try:
+                        cursor.execute(command)
+                        print(f"Executed command: {command}")
+                    except Error as err:
+                        print(f"Error executing command: {command}\nError: {err}")
     finally:
         cursor.close()
+
 
 if __name__ == "__main__":
     # MySQL connection configuration
@@ -90,8 +57,8 @@ if __name__ == "__main__":
         connection = create_connection(db_config)
 
         if connection:
-            # Create the table
-            create_gog_games_staging_table(connection)
+            # Execute the SQL file to create tables
+            execute_sql_file(connection, 'create_tables.sql')
 
             # Close the connection
             connection.close()
