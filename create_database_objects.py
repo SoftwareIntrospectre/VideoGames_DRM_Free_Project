@@ -28,7 +28,9 @@ def execute_sql_file(connection, file_path):
     try:
         with open(file_path, 'r') as sql_file:
             sql_commands = sql_file.read()
-            for command in sql_commands.split(';'):
+            # Split the commands on the top-level semicolon
+            commands = sql_commands.split(';')
+            for command in commands:
                 command = command.strip()
                 if command:  # Execute non-empty commands only
                     try:
@@ -36,9 +38,9 @@ def execute_sql_file(connection, file_path):
                         print(f"Executed command: {command}")
                     except Error as err:
                         print(f"Error executing command: {command}\nError: {err}")
+            connection.commit()  # Commit after all commands are executed
     finally:
         cursor.close()
-
 
 if __name__ == "__main__":
     # MySQL connection configuration
@@ -57,8 +59,8 @@ if __name__ == "__main__":
         connection = create_connection(db_config)
 
         if connection:
-            # Execute the SQL file to create tables
-            execute_sql_file(connection, 'create_tables.sql')
+            # Execute the SQL file to create stored procedures
+            execute_sql_file(connection, 'create_stored_procedures.sql')
 
             # Close the connection
             connection.close()
