@@ -1,5 +1,4 @@
--- Ensure you are using the correct database
-USE drm_free_games_db;  -- Change to your actual database name
+USE drm_free_games_db;
 
 -- Set the delimiter to handle the procedure definition
 DELIMITER //
@@ -15,8 +14,8 @@ BEGIN
     SELECT game_title FROM gog_games_staging;
 END //
 
--- Reset the delimiter back to the default
 DELIMITER ;
+
 
 -- DELIMITER //
 
@@ -40,3 +39,53 @@ DELIMITER ;
 
 --     FROM gog_games_staging;
 -- END //
+
+DELIMITER //
+
+-- Drop the procedure if it already exists
+DROP PROCEDURE IF EXISTS Insert_From_Stage_To_Game_Developer_Dim;
+
+-- Create or replace the procedure
+CREATE OR REPLACE PROCEDURE Insert_From_Stage_To_Game_Developer_Dim()
+BEGIN
+    -- IGNORE does not insert duplicate records
+    INSERT IGNORE INTO gog_game_developer_dim(developer_name)
+    SELECT developer FROM gog_games_staging;
+END //
+
+DELIMITER ;
+
+
+
+
+DELIMITER //
+
+-- Drop the procedure if it already exists
+DROP PROCEDURE IF EXISTS Insert_From_Stage_To_Game_Developer_Dim;
+
+-- Create or replace the procedure
+CREATE OR REPLACE PROCEDURE Insert_From_Stage_To_Game_Publisher_Dim()
+BEGIN
+    -- IGNORE does not insert duplicate records
+    INSERT IGNORE INTO gog_game_publisher_dim(publisher_name)
+    SELECT publisher FROM gog_games_staging;
+END //
+
+DELIMITER ;
+
+
+
+DELIMITER //
+
+-- Drop the procedure if it already exists
+DROP PROCEDURE IF EXISTS Insert_From_Stage_To_Game_Operating_Systems_Dim;
+
+-- Create or replace the procedure
+CREATE OR REPLACE PROCEDURE Insert_From_Stage_To_Game_Publisher_Dim()
+BEGIN
+    -- IGNORE does not insert duplicate records
+    INSERT IGNORE INTO gog_game_operating_systems_dim(operating_system_1, operating_system_2, operating_system_3)
+    SELECT operating_system_1, operating_system_2, operating_system_3 FROM gog_games_staging;
+END //
+
+DELIMITER ;
