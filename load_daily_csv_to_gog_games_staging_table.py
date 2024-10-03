@@ -1,7 +1,7 @@
 import csv
 import mysql.connector
 import os
-import ast  # used to extract the value from a Tag's:slug (lowercase tag name)
+import ast  # used to extract the value from a Tag's:'slug' (lowercase tag name)
 from datetime import datetime
 
 def remove_carets(value):
@@ -47,6 +47,10 @@ def process_csv(file_path):
     db_connection = mysql.connector.connect(**db_config)
     cursor = db_connection.cursor()
 
+    # Clear the staging table before processing the new data
+    cursor.execute("DELETE FROM gog_games_staging;")
+    db_connection.commit()
+
     # Get the filename from the path
     stage_record_filename = os.path.basename(file_path)
 
@@ -89,54 +93,57 @@ def process_csv(file_path):
                 extract_slug_from_tag(cleaned_columns[25])   # tag10
             ]
 
-            # Debugging output
-            print(f"cleaned_row: {cleaned_row}")
-            # print(f"Length of cleaned_row: {len(cleaned_row)}")
+            # Check for duplicate game_id (i.e. duplicate from source API)
+            cursor.execute("SELECT COUNT(*) FROM gog_games_staging WHERE game_id = %s", (cleaned_row[2],))
+            if cursor.fetchone()[0] > 0:
+                print(f"Skipping duplicate entry for game_id: {cleaned_row[2]}")
+                continue  # Skip to the next record
 
-            # Make sure there are 28 values to insert
-            if len(cleaned_row) != 28:
-                print(f"Skipping row due to value count mismatch: {cleaned_row}")
-                continue
-
-            cursor.execute("""
-                INSERT INTO gog_games_staging (
-                    stage_record_loaded_datetime,
-                    stage_record_filename,
-                    game_id,
-                    game_title,
-                    game_release_date,
-                    store_release_date,
-                    final_price,
-                    original_price,
-                    price_discount_percentage,
-                    price_discount_amount,
-                    price_currency,
-                    product_state,
-                    store_link,
-                    developer,
-                    publisher,
-                    operating_system_1,
-                    operating_system_2,
-                    operating_system_3,
-                    tag1,
-                    tag2,
-                    tag3,
-                    tag4,
-                    tag5,
-                    tag6,
-                    tag7,
-                    tag8,
-                    tag9,
-                    tag10
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-            """, cleaned_row)
+            # Insert the record into the staging table
+            try:
+                cursor.execute("""
+                    INSERT INTO gog_games_staging (
+                        stage_record_loaded_datetime,
+                        stage_record_filename,
+                        game_id,
+                        game_title,
+                        game_release_date,
+                        store_release_date,
+                        final_price,
+                        original_price,
+                        price_discount_percentage,
+                        price_discount_amount,
+                        price_currency,
+                        product_state,
+                        store_link,
+                        developer,
+                        publisher,
+                        operating_system_1,
+                        operating_system_2,
+                        operating_system_3,
+                        tag1,
+                        tag2,
+                        tag3,
+                        tag4,
+                        tag5,
+                        tag6,
+                        tag7,
+                        tag8,
+                        tag9,
+                        tag10
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                """, cleaned_row)
+            except mysql.connector.Error as e:
+                print(f"Error inserting game_id {cleaned_row[2]}: {e}")
 
     db_connection.commit()
     cursor.close()
     db_connection.close()
 
 if __name__ == '__main__':
-    # csv_filename = "GOG_Games_List_20240925.csv"
-    csv_filename = f"GOG_Games_List_{datetime.now().strftime('%Y%m%d')}.csv"
+    csv_filename = "GOG_Games_List_20240930.csv"
+
+    # load the daily file
+    # csv_filename = f"GOG_Games_List_{datetime.now().strftime('%Y%m%d')}.csv"
 
     process_csv(csv_filename)

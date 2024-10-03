@@ -60,7 +60,8 @@ if __name__ == "__main__":
 
         if connection:
             # Execute the SQL file to create stored procedures
-            execute_sql_file(connection, 'create_stored_procedures.sql')
+            execute_sql_file(connection, 'create_tables.sql')
+            # execute_sql_file(connection, 'create_stored_procedures.sql')
 
             # Close the connection
             connection.close()
