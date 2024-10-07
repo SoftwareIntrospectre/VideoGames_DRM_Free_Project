@@ -27,19 +27,32 @@ def execute_sql_file(connection, file_path):
     cursor = connection.cursor()
     try:
         with open(file_path, 'r') as sql_file:
-            sql_commands = sql_file.read()
-            # Split the commands on the top-level semicolon
+            sql_commands = sql_file.read().strip()
+            # Split commands on the delimiter 'DELIMITER' and process each command
             commands = sql_commands.split(';')
+            current_command = ""
             for command in commands:
                 command = command.strip()
-                if command:  # Execute non-empty commands only
-                    try:
-                        cursor.execute(command)
-                        print(f"Executed command: {command}")
-                    except Error as err:
-                        print(f"Error executing command: {command}\nError: {err}")
+                if command.startswith("DELIMITER"):
+                    continue  # Skip DELIMITER lines
+                if command:
+                    current_command += command + " "
+                    if current_command.endswith("END; "):  # When we reach the end of a procedure
+                        try:
+                            cursor.execute(current_command[:-1])  # Remove the last space
+                            proc_name = current_command.split()[2]  # Get procedure name
+                            print(f"Executed command: {proc_name}")
+                        except Error as err:
+                            print(f"Error executing command: {current_command}\nError: {err}")
+                        current_command = ""  # Reset for the next command
             connection.commit()  # Commit after all commands are executed
+    except FileNotFoundError:
+        print(f"The file {file_path} was not found.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
     finally:
+        cursor.close()
+
         cursor.close()
 
 if __name__ == "__main__":
@@ -60,8 +73,7 @@ if __name__ == "__main__":
 
         if connection:
             # Execute the SQL file to create stored procedures
-            execute_sql_file(connection, 'create_tables.sql')
-            # execute_sql_file(connection, 'create_stored_procedures.sql')
+            execute_sql_file(connection, 'create_insert_update_stored_procedures.sql')
 
             # Close the connection
             connection.close()

@@ -1,23 +1,20 @@
+-- Procedure to insert or update game title dimension
 DELIMITER //
 
--- Procedure to insert or update game title dimension
 CREATE OR REPLACE PROCEDURE InsertOrUpdateGameTitle(IN gameId BIGINT, IN titleName VARCHAR(255), IN effectiveDate DATE)
 BEGIN
     DECLARE currentEndDate DATE;
 
-    -- Check if a record already exists
     SELECT end_date INTO currentEndDate 
     FROM gog_game_title_dim 
     WHERE game_id = gameId AND effective_date = effectiveDate;
 
-    -- If exists, update it
     IF currentEndDate IS NOT NULL THEN
-        UPDATE gog_game_title_dim 
-        SET end_date = CURRENT_DATE, current_flag = FALSE 
+        UPDATE gog_game_title_dim
+        SET end_date = CURRENT_DATE, current_flag = FALSE
         WHERE game_id = gameId AND effective_date = effectiveDate;
     END IF;
 
-    -- Insert new record
     INSERT INTO gog_game_title_dim (game_id, title_name, effective_date, current_flag)
     VALUES (gameId, titleName, effectiveDate, TRUE);
 END //
@@ -27,13 +24,13 @@ CREATE OR REPLACE PROCEDURE InsertOrUpdateGameDeveloper(IN gameId BIGINT, IN dev
 BEGIN
     DECLARE currentEndDate DATE;
 
-    SELECT end_date INTO currentEndDate 
-    FROM gog_game_developer_dim 
+    SELECT end_date INTO currentEndDate
+    FROM gog_game_developer_dim
     WHERE game_id = gameId AND effective_date = effectiveDate;
 
     IF currentEndDate IS NOT NULL THEN
-        UPDATE gog_game_developer_dim 
-        SET end_date = CURRENT_DATE, current_flag = FALSE 
+        UPDATE gog_game_developer_dim
+        SET end_date = CURRENT_DATE, current_flag = FALSE
         WHERE game_id = gameId AND effective_date = effectiveDate;
     END IF;
 
@@ -46,13 +43,13 @@ CREATE OR REPLACE PROCEDURE InsertOrUpdateGamePublisher(IN gameId BIGINT, IN pub
 BEGIN
     DECLARE currentEndDate DATE;
 
-    SELECT end_date INTO currentEndDate 
-    FROM gog_game_publisher_dim 
+    SELECT end_date INTO currentEndDate
+    FROM gog_game_publisher_dim
     WHERE game_id = gameId AND effective_date = effectiveDate;
 
     IF currentEndDate IS NOT NULL THEN
-        UPDATE gog_game_publisher_dim 
-        SET end_date = CURRENT_DATE, current_flag = FALSE 
+        UPDATE gog_game_publisher_dim
+        SET end_date = CURRENT_DATE, current_flag = FALSE
         WHERE game_id = gameId AND effective_date = effectiveDate;
     END IF;
 
@@ -65,13 +62,13 @@ CREATE OR REPLACE PROCEDURE InsertOrUpdateGameReleaseDate(IN gameId BIGINT, IN s
 BEGIN
     DECLARE currentEndDate DATE;
 
-    SELECT end_date INTO currentEndDate 
-    FROM gog_game_release_dates_dim 
+    SELECT end_date INTO currentEndDate
+    FROM gog_game_release_dates_dim
     WHERE game_id = gameId AND effective_date = effectiveDate;
 
     IF currentEndDate IS NOT NULL THEN
-        UPDATE gog_game_release_dates_dim 
-        SET end_date = CURRENT_DATE, current_flag = FALSE 
+        UPDATE gog_game_release_dates_dim
+        SET end_date = CURRENT_DATE, current_flag = FALSE
         WHERE game_id = gameId AND effective_date = effectiveDate;
     END IF;
 
@@ -84,13 +81,13 @@ CREATE OR REPLACE PROCEDURE InsertOrUpdateGameProductState(IN gameId BIGINT, IN 
 BEGIN
     DECLARE currentEndDate DATE;
 
-    SELECT end_date INTO currentEndDate 
-    FROM gog_game_product_state_dim 
+    SELECT end_date INTO currentEndDate
+    FROM gog_game_product_state_dim
     WHERE game_id = gameId AND effective_date = effectiveDate;
 
     IF currentEndDate IS NOT NULL THEN
-        UPDATE gog_game_product_state_dim 
-        SET end_date = CURRENT_DATE, current_flag = FALSE 
+        UPDATE gog_game_product_state_dim
+        SET end_date = CURRENT_DATE, current_flag = FALSE
         WHERE game_id = gameId AND effective_date = effectiveDate;
     END IF;
 
@@ -98,33 +95,33 @@ BEGIN
     VALUES (gameId, productState, effectiveDate, TRUE);
 END //
 
--- Procedure to insert into the currencies dimension
+-- Procedure to insert or update currencies
 CREATE OR REPLACE PROCEDURE InsertOrUpdateCurrency(IN priceCurrency VARCHAR(10))
 BEGIN
     DECLARE currencyExists INT;
 
-    SELECT COUNT(*) INTO currencyExists 
-    FROM gog_game_currencies_dim 
+    SELECT COUNT(*) INTO currencyExists
+    FROM gog_game_currencies_dim
     WHERE price_currency = priceCurrency;
 
     IF currencyExists = 0 THEN
-        INSERT INTO gog_game_currencies_dim (price_currency) 
+        INSERT INTO gog_game_currencies_dim (price_currency)
         VALUES (priceCurrency);
     END IF;
 END //
 
--- Procedure to insert into the operating systems dimension
+-- Procedure to insert or update operating systems
 CREATE OR REPLACE PROCEDURE InsertOrUpdateOperatingSystems(IN gameId BIGINT, IN operating_system_1 VARCHAR(50), IN operating_system_2 VARCHAR(50), IN operating_system_3 VARCHAR(50), IN effectiveDate DATE)
 BEGIN
     DECLARE currentEndDate DATE;
 
-    SELECT end_date INTO currentEndDate 
-    FROM gog_game_operating_systems_dim 
+    SELECT end_date INTO currentEndDate
+    FROM gog_game_operating_systems_dim
     WHERE game_id = gameId AND effective_date = effectiveDate;
 
     IF currentEndDate IS NOT NULL THEN
-        UPDATE gog_game_operating_systems_dim 
-        SET end_date = CURRENT_DATE, current_flag = FALSE 
+        UPDATE gog_game_operating_systems_dim
+        SET end_date = CURRENT_DATE, current_flag = FALSE
         WHERE game_id = gameId AND effective_date = effectiveDate;
     END IF;
 
@@ -132,20 +129,20 @@ BEGIN
     VALUES (gameId, operating_system_1, operating_system_2, operating_system_3, effectiveDate, TRUE);
 END //
 
--- Procedure to insert into the tags dimension
-CREATE OR REPLACE PROCEDURE InsertOrUpdateTags(IN gameId BIGINT, IN tag1 VARCHAR(50), IN tag2 VARCHAR(50), IN tag3 VARCHAR(50), IN tag4 VARCHAR(50), IN tag5 VARCHAR(50), 
-                                     IN tag6 VARCHAR(50), IN tag7 VARCHAR(50), IN tag8 VARCHAR(50), IN tag9 VARCHAR(50), IN tag10 VARCHAR(50), 
+-- Procedure to insert or update tags
+CREATE OR REPLACE PROCEDURE InsertOrUpdateTags(IN gameId BIGINT, IN tag1 VARCHAR(50), IN tag2 VARCHAR(50), IN tag3 VARCHAR(50), IN tag4 VARCHAR(50), IN tag5 VARCHAR(50),
+                                     IN tag6 VARCHAR(50), IN tag7 VARCHAR(50), IN tag8 VARCHAR(50), IN tag9 VARCHAR(50), IN tag10 VARCHAR(50),
                                      IN effectiveDate DATE)
 BEGIN
     DECLARE currentEndDate DATE;
 
     SELECT end_date INTO currentEndDate 
-    FROM gog_game_tags_dim 
+    FROM gog_game_tags_dim
     WHERE game_id = gameId AND effective_date = effectiveDate;
 
     IF currentEndDate IS NOT NULL THEN
-        UPDATE gog_game_tags_dim 
-        SET end_date = CURRENT_DATE, current_flag = FALSE 
+        UPDATE gog_game_tags_dim
+        SET end_date = CURRENT_DATE, current_flag = FALSE
         WHERE game_id = gameId AND effective_date = effectiveDate;
     END IF;
 
@@ -169,10 +166,13 @@ BEGIN
 END //
 
 -- Procedure to insert or update game changes log
-CREATE OR REPLACE PROCEDURE InsertIntoGameChangesLog(IN gameId BIGINT, IN changeType ENUM('INSERT', 'UPDATE'), IN details TEXT)
+CREATE OR REPLACE PROCEDURE InsertIntoGameChangesLog(IN gameId BIGINT, IN changeType VARCHAR(10), IN details TEXT)
 BEGIN
+    IF changeType NOT IN ('INSERT', 'UPDATE') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid change type';
+    END IF;
+
     INSERT INTO game_changes_log (game_id, change_type, change_datetime, details)
     VALUES (gameId, changeType, CURRENT_TIMESTAMP, details);
 END //
 
-DELIMITER ;
