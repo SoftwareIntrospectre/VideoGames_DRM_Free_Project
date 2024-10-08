@@ -37,37 +37,44 @@ def call_stored_procedures():
 
             try:
                 # Call stored procedures
-                cursor.callproc('InsertOrUpdateGameTitle', (game_id, title_name, effective_date))
-                check_unread_results(cursor)
+    # Fetch additional details for the stored procedure call
+                # Assuming developer, publisher, and game_release_date are defined in your loop
+                cursor.callproc('InsertOrUpdateGameTitle', (game_id, title_name, developer, publisher, game_release_date, effective_date))
+                logging.info(f'Inserted/Updated game title for ID {game_id}.')
 
-                cursor.callproc('InsertOrUpdateGameDeveloper', (game_id, developer, effective_date))
-                check_unread_results(cursor)
+            except mysql.connector.Error as proc_err:
+                logging.error(f"Error calling InsertOrUpdateGameTitle for game ID {game_id}: {proc_err}")
+                print(proc_err)
 
-                cursor.callproc('InsertOrUpdateGamePublisher', (game_id, publisher, effective_date))
-                check_unread_results(cursor)
 
-                cursor.callproc('InsertOrUpdateGameReleaseDate', (game_id, game_release_date, None, effective_date))
-                check_unread_results(cursor)
+                # cursor.callproc('InsertOrUpdateGameDeveloper', (game_id, developer, effective_date))
+                # check_unread_results(cursor)
 
-                cursor.callproc('InsertOrUpdateGameProductState', (game_id, 'Available', effective_date))
-                check_unread_results(cursor)
+                # cursor.callproc('InsertOrUpdateGamePublisher', (game_id, publisher, effective_date))
+                # check_unread_results(cursor)
 
-                cursor.callproc('InsertOrUpdateCurrency', (store_link.split()[-1],))
-                check_unread_results(cursor)
+                # cursor.callproc('InsertOrUpdateGameReleaseDate', (game_id, game_release_date, None, effective_date))
+                # check_unread_results(cursor)
 
-                cursor.callproc('InsertOrUpdateOperatingSystems', (game_id, os1, os2, os3, effective_date))
-                check_unread_results(cursor)
+                # cursor.callproc('InsertOrUpdateGameProductState', (game_id, 'Available', effective_date))
+                # check_unread_results(cursor)
 
-                cursor.callproc('InsertOrUpdateTags', (game_id, *tags, effective_date))
-                check_unread_results(cursor)
+                # cursor.callproc('InsertOrUpdateCurrency', (store_link.split()[-1],))
+                # check_unread_results(cursor)
 
-                # Insert into fact table
-                cursor.callproc('InsertIntoFactTable', (game_id, original_price, final_price, price_discount_percentage, price_discount_amount, store_link, datetime.now()))
-                check_unread_results(cursor)
+                # cursor.callproc('InsertOrUpdateOperatingSystems', (game_id, os1, os2, os3, effective_date))
+                # check_unread_results(cursor)
 
-                # Insert change log
-                cursor.callproc('InsertIntoGameChangesLog', (game_id, 'INSERT', f'Inserted game with ID {game_id}'))
-                check_unread_results(cursor)
+                # cursor.callproc('InsertOrUpdateTags', (game_id, *tags, effective_date))
+                # check_unread_results(cursor)
+
+                # # Insert into fact table
+                # cursor.callproc('InsertIntoFactTable', (game_id, original_price, final_price, price_discount_percentage, price_discount_amount, store_link, datetime.now()))
+                # check_unread_results(cursor)
+
+                # # Insert change log
+                # cursor.callproc('InsertIntoGameChangesLog', (game_id, 'INSERT', f'Inserted game with ID {game_id}'))
+                # check_unread_results(cursor)
 
                 logging.info(f'Processed game with ID {game_id} successfully.')
 
@@ -97,7 +104,8 @@ def check_unread_results(cursor):
         return True
 
 if __name__ == '__main__':
-    csv_filename = "GOG_Games_List_20240930.csv"  # You can adjust the filename as needed
-    
+    # csv_filename = "GOG_Games_List_20240930.csv"  # You can adjust the filename as needed
+    csv_filename = f"./gog_daily_files/GOG_Games_List_{datetime.now().strftime('%Y%m%d')}.csv"
+
     load_and_process_data(csv_filename)  # Execute Part 1
     call_stored_procedures()  # Execute Part 2

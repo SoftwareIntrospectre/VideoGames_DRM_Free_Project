@@ -5,9 +5,6 @@ from mysql.connector import Error
 def create_connection(database_config):
     """
     Create a connection to the MySQL database.
-
-    :param database_config: Dictionary with MySQL database connection parameters.
-    :return: Connection object or None
     """
     connection = None
     try:
@@ -20,39 +17,47 @@ def create_connection(database_config):
 def execute_sql_file(connection, file_path):
     """
     Execute SQL commands from a file.
-
-    :param connection: Connection object to the MySQL database.
-    :param file_path: Path to the SQL file to execute.
     """
     cursor = connection.cursor()
     try:
         with open(file_path, 'r') as sql_file:
             sql_commands = sql_file.read().strip()
-            # Split commands on the delimiter 'DELIMITER' and process each command
-            commands = sql_commands.split(';')
+            # Split the commands by 'DELIMITER' and manage procedure definitions
+            commands = sql_commands.split('DELIMITER')
             current_command = ""
-            for command in commands:
-                command = command.strip()
-                if command.startswith("DELIMITER"):
-                    continue  # Skip DELIMITER lines
-                if command:
-                    current_command += command + " "
-                    if current_command.endswith("END; "):  # When we reach the end of a procedure
+            current_delimiter = ";"
+
+            for i, part in enumerate(commands):
+                part = part.strip()
+                if i == 0:
+                    # This part does not change the delimiter
+                    current_command += part + " "
+                else:
+                    # Handle the commands split by the new delimiter
+                    new_delim = part.split()[0]
+                    command_body = part[len(new_delim):].strip()
+                    
+                    if command_body.endswith("END"):
+                        current_command += command_body
+                        # Execute the full command
                         try:
-                            cursor.execute(current_command[:-1])  # Remove the last space
+                            cursor.execute(current_command)
                             proc_name = current_command.split()[2]  # Get procedure name
                             print(f"Executed command: {proc_name}")
                         except Error as err:
                             print(f"Error executing command: {current_command}\nError: {err}")
                         current_command = ""  # Reset for the next command
+                    else:
+                        current_command += part + " "
+                    # Update the current delimiter
+                    current_delimiter = new_delim
+
             connection.commit()  # Commit after all commands are executed
     except FileNotFoundError:
         print(f"The file {file_path} was not found.")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
     finally:
-        cursor.close()
-
         cursor.close()
 
 if __name__ == "__main__":

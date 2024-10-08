@@ -123,7 +123,7 @@ def wrap_with_carets(value):
     return f'^{value}^'
 
 def main():
-    csv_filename = f"GOG_Games_List_{datetime.now().strftime('%Y%m%d')}.csv"
+    csv_filename = f"./gog_daily_files/GOG_Games_List_{datetime.now().strftime('%Y%m%d')}.csv"
     total_products = get_total_products()
     
     for page in range(1, (total_products // BATCH_SIZE) + 2):

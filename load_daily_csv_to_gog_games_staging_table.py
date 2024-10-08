@@ -141,9 +141,9 @@ def process_csv(file_path):
     db_connection.close()
 
 if __name__ == '__main__':
-    csv_filename = "GOG_Games_List_20240930.csv"
+    # csv_filename = "GOG_Games_List_20240930.csv"
 
     # load the daily file
-    # csv_filename = f"GOG_Games_List_{datetime.now().strftime('%Y%m%d')}.csv"
+    csv_filename = f"./gog_daily_files/GOG_Games_List_{datetime.now().strftime('%Y%m%d')}.csv"
 
     process_csv(csv_filename)
