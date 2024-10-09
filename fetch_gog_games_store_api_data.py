@@ -60,6 +60,12 @@ def append_to_csv(products, csv_filename):
             "Tag8": wrap_with_carets(product.get('tags')[7] if len(product.get('tags', []) ) > 7 else None),
             "Tag9": wrap_with_carets(product.get('tags')[8] if len(product.get('tags', []) ) > 8 else None),
             "Tag10": wrap_with_carets(product.get('tags')[9] if len(product.get('tags', []) ) > 9 else None),
+
+            # rework this to not need Tags, but instead use genres[0][slug], genres[1][slug], and genres[2][slug]
+            # add in storeLink (url to website)
+            # add in Ratings:
+                # usa_esrb_rating = ratings[]
+
         }
 
         new_data.append(data_entry)
