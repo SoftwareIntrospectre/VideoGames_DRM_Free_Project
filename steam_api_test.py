@@ -17,7 +17,7 @@ app_list = response.json()
 new_data = []
 count = 0
 
-# Loop through the first 100 app IDs
+# Loop through the first 100 app IDs (testing purposes)
 for app in app_list['applist']['apps']:
     if count >= 100:
         break
@@ -48,12 +48,19 @@ for app in app_list['applist']['apps']:
                 release_date = None  # Set to None if it's not a valid date
 
             # Ignoring cases that aren't relevant
-            if is_free or release_date in ('coming soon', 'to be announced', None, '') or game_type == "dlc":
-                print(f"app ID: {app_id} is either a free game, not yet released, or DLC. Ignoring.")
+            if is_free:
+                print(f"app ID: {app_id} is free game. Ignoring.")
+                pass
+
+            elif not release_date:
+                print(f"app ID: {app_id} does not have release date. Ignoring.")
+                pass
+
+            elif game_type == "dlc":
+                print(f"app ID: {app_id} is Downloadable Content (DLC) to an existing game. Ignoring.")
                 pass
 
             else:
-
                 pc_requirements = game_details.get('pc_requirements', [])
                 mac_requirements = game_details.get('mac_requirements', [])
                 linux_requirements = game_details.get('linux_requirements', [])
