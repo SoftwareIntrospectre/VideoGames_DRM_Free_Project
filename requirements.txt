@@ -3,3 +3,4 @@ requests
 mysql-connector-python
 mysql
 ast
+apache-airflow

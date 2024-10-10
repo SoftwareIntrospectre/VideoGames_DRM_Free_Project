@@ -1,24 +1,32 @@
 import requests
 import pandas as pd
 from datetime import datetime
+import os
 
-# Fetch the list of games
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+}
+
+# TODO: API limits 100,000 requests per day. Keep that in mind with testing too (Keep in mind I'm doing 2 requests per game)
+
+
+# Fetch the list of games (need "app ID")
 response = requests.get('https://api.steampowered.com/ISteamApps/GetAppList/v2/')
 app_list = response.json()
 
 new_data = []
 count = 0
 
-# Loop through the first 10 app IDs
+# Loop through the first 100 app IDs
 for app in app_list['applist']['apps']:
-    if count >= 10:
+    if count >= 100:
         break
 
     app_id = app['appid']
     
     # Fetch detailed information for each app using the app ID
-    details_response = requests.get(f'https://store.steampowered.com/api/appdetails?appids={app_id}')
-
+    details_response = requests.get(f'https://store.steampowered.com/api/appdetails?appids={app_id}', headers=headers)
+    
     if details_response.status_code == 200:
         details_data = details_response.json()
         
@@ -30,30 +38,54 @@ for app in app_list['applist']['apps']:
 
             # Check if the game is paid and not unreleased
             is_free = game_details.get('is_free', False)
-            release_date_info = game_details.get('release_date', {}).get('date', '')
+            release_date_raw = game_details.get('release_date', {}).get('date', None)
+            game_type = game_details.get('type', '')
 
-            # Adjusting condition for is_free and release date
-            if not is_free and release_date_info not in ('Coming soon', None, ''):
+            # Check if the release date is valid
+            if release_date_raw and release_date_raw.lower() not in ['to be announced', 'coming soon', '']:
+                release_date = pd.to_datetime(release_date_raw, errors='coerce')  # Use errors='coerce' to handle invalid formats
+            else:
+                release_date = None  # Set to None if it's not a valid date
+
+            # Ignoring cases that aren't relevant
+            if is_free or release_date in ('coming soon', 'to be announced', None, '') or game_type == "dlc":
+                print(f"app ID: {app_id} is either a free game, not yet released, or DLC. Ignoring.")
+                pass
+
+            else:
+
+                pc_requirements = game_details.get('pc_requirements', [])
+                mac_requirements = game_details.get('mac_requirements', [])
+                linux_requirements = game_details.get('linux_requirements', [])
+
                 data_entry = {
                     "steam_game_id": game_details['steam_appid'],
                     "steam_game_name": game_details['name'],
+                    "is_free": is_free,
                     "developer": game_details.get('developers', ['N/A'])[0],
                     "publisher": game_details.get('publishers', ['N/A'])[0],
-                    "release_date": release_date_info,
-                    "genre_1_id": genre_info[0]['id'] if genre_info else 'N/A',
-                    "genre_1_description": genre_info[0]['description'] if genre_info else 'N/A',
+                    "genre1_id": game_details['genres'][0]['id'] if game_details.get('genres') else 'N/A',
+                    "genre1_name": game_details['genres'][0]['description'] if game_details.get('genres') else 'N/A',
+                    "genre2_id": game_details['genres'][1]['id'] if len(game_details.get('genres', [])) > 1 else 'N/A',
+                    "genre2_name": game_details['genres'][1]['description'] if len(game_details.get('genres', [])) > 1 else 'N/A',
+                    "release_date": release_date,
+                    "required_age": game_details.get('required_age', 0),
                     "on_windows_pc_platform": game_details.get('platforms', {}).get('windows', False),
-                    "on_mac_platform": game_details.get('platforms', {}).get('mac', False),
-                    "on_linux_platform": game_details.get('platforms', {}).get('linux', False)
+                    "on_apple_mac_platform": game_details.get('platforms', {}).get('mac', False),
+                    "on_linux_platform": game_details.get('platforms', {}).get('linux', False),
+                    "windows_pc_requirements_minimum": pc_requirements[0].get('minimum', '') if isinstance(pc_requirements, list) and len(pc_requirements) > 0 else '',
+                    "windows_pc_requirements_recommended": pc_requirements[0].get('recommended', '') if isinstance(pc_requirements, list) and len(pc_requirements) > 0 else '',
+                    "apple_mac_requirements_minimum": mac_requirements[0].get('minimum', '') if isinstance(mac_requirements, list) and len(mac_requirements) > 0 else '',
+                    "apple_mac_requirements_recommended": mac_requirements[0].get('recommended', '') if isinstance(mac_requirements, list) and len(mac_requirements) > 0 else '',
+                    "linux_requirements_minimum": linux_requirements[0].get('minimum', '') if isinstance(linux_requirements, list) and len(linux_requirements) > 0 else '',
+                    "linux_requirements_recommended": linux_requirements[0].get('recommended', '') if isinstance(linux_requirements, list) and len(linux_requirements) > 0 else '',
+                    "user_rating": game_details.get('content_descriptors', {}).get('ratings', [])
                 }
                 
                 new_data.append(data_entry)
                 count += 1
-
-        else:
-            print(f"Details not available for app ID {app_id} or success is false.")
     else:
-        print(f"Failed to fetch details for app ID {app_id}. Status code: {details_response.status_code}")
+        print(f"Failed to fetch details for app ID {app_id}. Status code: {details_response.status_code} - '{details_response.reason}'")
 
 # Check if any data was collected before saving
 if new_data:
