@@ -18,8 +18,8 @@ def get_total_products():
 def fetch_products(page):
     params = {
         "limit": BATCH_SIZE,
-        "order": "desc:trending",
-        "productType": "in:game,pack,dlc,extras",
+        "order": "asc:alphabetical",
+        "productType": "in:game",#,pack,dlc,extras",
         "page": page
     }
     response = requests.get(BASE_URL, params=params)
@@ -27,45 +27,39 @@ def fetch_products(page):
     if response.status_code == 200:
         return response.json().get("products", [])
     else:
-        print(f"Failed to fetch data for page {page}")
+        print(f"Failed to fetch data for page {page}. Status Code: {response.status_code}, Message: {response.text}")
         return []
 
 def append_to_csv(products, csv_filename):
     new_data = []  # List to hold data for each product
     for product in products:
         data_entry = {
-            "id": wrap_with_carets(product.get('id')),
-            "title": wrap_with_carets(product.get('title')),
-            "releaseDate": wrap_with_carets(format_date(product.get('releaseDate'))),
-            "storeReleaseDate": wrap_with_carets(format_date(product.get('storeReleaseDate'))),
-            "FinalPrice": wrap_with_carets(clean_price(safe_get_price(product, 'final'))),
-            "OriginalPrice": wrap_with_carets(clean_price(safe_get_price(product, 'base'))),
-            "PriceDiscountPercentage": wrap_with_carets(clean_discount(safe_get_discount(product))),
-            "PriceDiscountAmount": wrap_with_carets(safe_get_discount_amount(product)),
-            "PriceCurrency": wrap_with_carets(safe_get_currency(product)),
-            "productState": wrap_with_carets(product.get('productState')),
-            "storeLink": wrap_with_carets(product.get('storeLink')),
-            "Developer": wrap_with_carets(product.get('developers', [None])[0]),
-            "Publisher": wrap_with_carets(product.get('publishers', [None])[0]),
-            "OperatingSystem1": wrap_with_carets(product.get('operatingSystems')[0] if len(product.get('operatingSystems', [])) > 0 else None),
-            "OperatingSystem2": wrap_with_carets(product.get('operatingSystems')[1] if len(product.get('operatingSystems', [])) > 1 else None),
-            "OperatingSystem3": wrap_with_carets(product.get('operatingSystems')[2] if len(product.get('operatingSystems', [])) > 2 else None),
-            "Tag1": wrap_with_carets(product.get('tags')[0] if len(product.get('tags', []) ) > 0 else None),
-            "Tag2": wrap_with_carets(product.get('tags')[1] if len(product.get('tags', []) ) > 1 else None),
-            "Tag3": wrap_with_carets(product.get('tags')[2] if len(product.get('tags', []) ) > 2 else None),
-            "Tag4": wrap_with_carets(product.get('tags')[3] if len(product.get('tags', []) ) > 3 else None),
-            "Tag5": wrap_with_carets(product.get('tags')[4] if len(product.get('tags', []) ) > 4 else None),
-            "Tag6": wrap_with_carets(product.get('tags')[5] if len(product.get('tags', []) ) > 5 else None),
-            "Tag7": wrap_with_carets(product.get('tags')[6] if len(product.get('tags', []) ) > 6 else None),
-            "Tag8": wrap_with_carets(product.get('tags')[7] if len(product.get('tags', []) ) > 7 else None),
-            "Tag9": wrap_with_carets(product.get('tags')[8] if len(product.get('tags', []) ) > 8 else None),
-            "Tag10": wrap_with_carets(product.get('tags')[9] if len(product.get('tags', []) ) > 9 else None),
-
-            # rework this to not need Tags, but instead use genres[0][slug], genres[1][slug], and genres[2][slug]
-            # add in storeLink (url to website)
-            # add in Ratings:
-                # usa_esrb_rating = ratings[]
-
+            "id": product.get('id'),  # No caret wrapping
+            "title": product.get('title'),  # No caret wrapping
+            "releaseDate": format_date(product.get('releaseDate')),
+            "storeReleaseDate": format_date(product.get('storeReleaseDate')),
+            "FinalPrice": clean_price(safe_get_price(product, 'final')),
+            "OriginalPrice": clean_price(safe_get_price(product, 'base')),
+            "PriceDiscountPercentage": clean_discount(safe_get_discount(product)),
+            "PriceDiscountAmount": safe_get_discount_amount(product),
+            "PriceCurrency": safe_get_currency(product),
+            "productState": product.get('productState'),
+            "storeLink": product.get('storeLink'),
+            "Developer": product.get('developers', [None])[0],
+            "Publisher": product.get('publishers', [None])[0],
+            "OperatingSystem1": product.get('operatingSystems')[0] if len(product.get('operatingSystems', [])) > 0 else None,
+            "OperatingSystem2": product.get('operatingSystems')[1] if len(product.get('operatingSystems', [])) > 1 else None,
+            "OperatingSystem3": product.get('operatingSystems')[2] if len(product.get('operatingSystems', [])) > 2 else None,
+            "Tag1": product.get('tags')[0] if len(product.get('tags', [])) > 0 else None,
+            "Tag2": product.get('tags')[1] if len(product.get('tags', [])) > 1 else None,
+            "Tag3": product.get('tags')[2] if len(product.get('tags', [])) > 2 else None,
+            "Tag4": product.get('tags')[3] if len(product.get('tags', [])) > 3 else None,
+            "Tag5": product.get('tags')[4] if len(product.get('tags', [])) > 4 else None,
+            "Tag6": product.get('tags')[5] if len(product.get('tags', [])) > 5 else None,
+            "Tag7": product.get('tags')[6] if len(product.get('tags', [])) > 6 else None,
+            "Tag8": product.get('tags')[7] if len(product.get('tags', [])) > 7 else None,
+            "Tag9": product.get('tags')[8] if len(product.get('tags', [])) > 8 else None,
+            "Tag10": product.get('tags')[9] if len(product.get('tags', [])) > 9 else None
         }
 
         new_data.append(data_entry)
@@ -122,17 +116,12 @@ def safe_get_currency(product):
         return price_info['finalMoney'].get('currency', None)
     return None
 
-def wrap_with_carets(value):
-    """Wrap a value with carets. If None or empty, return ^^."""
-    if value is None or value == '':
-        return '^^'
-    return f'^{value}^'
-
 def main():
     csv_filename = f"./gog_daily_files/GOG_Games_List_{datetime.now().strftime('%Y%m%d')}.csv"
     total_products = get_total_products()
     
     for page in range(1, (total_products // BATCH_SIZE) + 2):
+        print('adding new page')
         products = fetch_products(page)
         append_to_csv(products, csv_filename)  # Append fetched products to the CSV
 

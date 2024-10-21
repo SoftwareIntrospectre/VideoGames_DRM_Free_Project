@@ -2,142 +2,146 @@ import requests
 import pandas as pd
 from datetime import datetime
 import os
+import json
+import logging
+import time
 
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
-}
+# Set up logging
+logging.basicConfig(
+    filename='./steam_daily_files/steam_scraper.log', 
+    level=logging.INFO, 
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
-# TODO: API limits 100,000 requests per day. Keep that in mind with testing too (Keep in mind I'm doing 2 requests per game)
+# File to store valid app IDs
+VALID_APP_IDS_FILE = "./steam_daily_files/valid_app_ids.json"
 
+if not os.path.exists('./steam_daily_files/'):
+    os.makedirs('./steam_daily_files/')
 
-# Fetch the list of games (need "app ID")
-response = requests.get('https://api.steampowered.com/ISteamApps/GetAppList/v2/')
-app_list = response.json()
+FETCH_LIMIT = 100
+TIME_PERIOD = 30  # seconds
 
-new_data = []
-count = 0
+# # Load existing valid app IDs from file
+# def load_valid_app_ids():
+#     sure = [216938, 660010, 660130, 1118314, 1275822, 1343832, 1828741, 1888160, 662172, 1360782, 1820332, 1927051]
+#     return set(sure)
 
-# Loop through the first 100 app IDs (testing purposes)
-for app in app_list['applist']['apps']:
-    if count >= 100:
-        break
+# Load existing valid app IDs from file
+def load_valid_app_ids():
+    if os.path.exists(VALID_APP_IDS_FILE):
+        with open(VALID_APP_IDS_FILE, 'r') as f:
+            return set(json.load(f))  # Use a set for quick lookup
+    return set()
 
-    app_id = app['appid']
+# Process each valid app ID
+def process_app_ids(app_ids):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
     
-    # Fetch detailed information for each app using the app ID
-    details_response = requests.get(f'https://store.steampowered.com/api/appdetails?appids={app_id}', headers=headers)
+    new_data = []
+    total_apps = len(app_ids)
+    logging.info(f"Processing {total_apps} valid app IDs.")
+
+    request_count = 0
+    start_time = time.time()
     
-    if details_response.status_code == 200:
-        details_data = details_response.json()
+    csv_file_path = f"./steam_daily_files/steam_game_details_{datetime.now().strftime('%Y%m%d')}.csv"
+
+    for count, app_id in enumerate(app_ids, start=1):
+        details_url = f'https://store.steampowered.com/api/appdetails?appids={app_id}'
         
-        # Check if the request was successful
-        if str(app_id) in details_data and details_data[str(app_id)]['success']:
-            game_details = details_data[str(app_id)]['data']
+        while True:
+            try:
+                details_response = requests.get(details_url, headers=headers)
+                details_response.raise_for_status()
 
-            genre_info = game_details.get('genres', [])
+                if details_response.status_code == 429:
+                    logging.warning(f"Received 429 Client Error for app ID: {app_id}. Pausing for 60 seconds...")
+                    time.sleep(60)  # Pause for 60 seconds
+                    continue  # Retry the request
 
-            # Check if the game is paid and not unreleased
-            is_free = game_details.get('is_free', False)
-            release_date_raw = game_details.get('release_date', {}).get('date', None)
-            game_type = game_details.get('type', '')
+                details_data = details_response.json()
+                if str(app_id) in details_data and details_data[str(app_id)]['success']:
+                    game_details = details_data[str(app_id)]['data']
+                    
+                    is_free = game_details.get('is_free', False)
+                    release_date_raw = game_details.get('release_date', {}).get('date', None)
+                    game_type = game_details.get('type', '')
 
-            # Check if the release date is valid
-            if release_date_raw and release_date_raw.lower() not in ['to be announced', 'coming soon', '']:
-                release_date = pd.to_datetime(release_date_raw, errors='coerce')  # Use errors='coerce' to handle invalid formats
-            else:
-                release_date = None  # Set to None if it's not a valid date
+                    if release_date_raw and release_date_raw.lower() not in ['to be announced', 'coming soon', '']:
+                        release_date = pd.to_datetime(release_date_raw, errors='coerce')
+                    else:
+                        logging.warning(f"app ID: {app_id} does not have a valid release date. Ignoring.")
+                        break
 
-            # Ignoring cases that aren't relevant
-            if is_free:
-                print(f"app ID: {app_id} is free game. Ignoring.")
-                pass
+                    if is_free:
+                        logging.warning(f"app ID: {app_id} is a free game. Ignoring.")
+                        break
 
-            elif not release_date:
-                print(f"app ID: {app_id} does not have release date. Ignoring.")
-                pass
+                    if is_free or game_type == "dlc":
+                        logging.warning(f"app ID: {app_id} is Downloadable Content (DLC). Ignoring.")
+                        break
 
-            elif game_type == "dlc":
-                print(f"app ID: {app_id} is Downloadable Content (DLC) to an existing game. Ignoring.")
-                pass
+                    elif is_free or game_type == "demo":
+                        logging.warning(f"app ID: {app_id} is a demo. Ignoring.")
+                        break
 
-            else:
-                pc_requirements = game_details.get('pc_requirements', [])
-                mac_requirements = game_details.get('mac_requirements', [])
-                linux_requirements = game_details.get('linux_requirements', [])
+                    else:
+                        # Collect data
+                        data_entry = {
+                            "steam_game_id": game_details['steam_appid'],
+                            "steam_game_name": game_details['name'],
+                            "is_free": is_free,
+                            "developer": game_details.get('developers', ['N/A'])[0],
+                            "publisher": game_details.get('publishers', ['N/A'])[0],
+                            "genre1_id": game_details['genres'][0]['id'] if game_details.get('genres') else 'N/A',
+                            "genre1_name": game_details['genres'][0]['description'] if game_details.get('genres') else 'N/A',
+                            "genre2_id": game_details['genres'][1]['id'] if len(game_details.get('genres', [])) > 1 else 'N/A',
+                            "genre2_name": game_details['genres'][1]['description'] if len(game_details.get('genres', [])) > 1 else 'N/A',
+                            "release_date": release_date,
+                            "required_age": game_details.get('required_age', 0),
+                            "on_windows_pc_platform": game_details.get('platforms', {}).get('windows', False),
+                            "on_apple_mac_platform": game_details.get('platforms', {}).get('mac', False),
+                            "on_linux_platform": game_details.get('platforms', {}).get('linux', False),
+                        }
+                        
+                        new_data.append(data_entry)
 
-                data_entry = {
-                    "steam_game_id": game_details['steam_appid'],
-                    "steam_game_name": game_details['name'],
-                    "is_free": is_free,
-                    "developer": game_details.get('developers', ['N/A'])[0],
-                    "publisher": game_details.get('publishers', ['N/A'])[0],
-                    "genre1_id": game_details['genres'][0]['id'] if game_details.get('genres') else 'N/A',
-                    "genre1_name": game_details['genres'][0]['description'] if game_details.get('genres') else 'N/A',
-                    "genre2_id": game_details['genres'][1]['id'] if len(game_details.get('genres', [])) > 1 else 'N/A',
-                    "genre2_name": game_details['genres'][1]['description'] if len(game_details.get('genres', [])) > 1 else 'N/A',
-                    "release_date": release_date,
-                    "required_age": game_details.get('required_age', 0),
-                    "on_windows_pc_platform": game_details.get('platforms', {}).get('windows', False),
-                    "on_apple_mac_platform": game_details.get('platforms', {}).get('mac', False),
-                    "on_linux_platform": game_details.get('platforms', {}).get('linux', False),
-                    "windows_pc_requirements_minimum": pc_requirements[0].get('minimum', '') if isinstance(pc_requirements, list) and len(pc_requirements) > 0 else '',
-                    "windows_pc_requirements_recommended": pc_requirements[0].get('recommended', '') if isinstance(pc_requirements, list) and len(pc_requirements) > 0 else '',
-                    "apple_mac_requirements_minimum": mac_requirements[0].get('minimum', '') if isinstance(mac_requirements, list) and len(mac_requirements) > 0 else '',
-                    "apple_mac_requirements_recommended": mac_requirements[0].get('recommended', '') if isinstance(mac_requirements, list) and len(mac_requirements) > 0 else '',
-                    "linux_requirements_minimum": linux_requirements[0].get('minimum', '') if isinstance(linux_requirements, list) and len(linux_requirements) > 0 else '',
-                    "linux_requirements_recommended": linux_requirements[0].get('recommended', '') if isinstance(linux_requirements, list) and len(linux_requirements) > 0 else '',
-                    "user_rating": game_details.get('content_descriptors', {}).get('ratings', [])
-                }
-                
-                new_data.append(data_entry)
-                count += 1
-    else:
-        print(f"Failed to fetch details for app ID {app_id}. Status code: {details_response.status_code} - '{details_response.reason}'")
+                        # Write to CSV after every 100 records
+                        if len(new_data) >= 100:
+                            new_df = pd.DataFrame(new_data)
+                            new_df.to_csv(csv_file_path, mode='a', header=not os.path.exists(csv_file_path), index=False, sep='|')
+                            logging.info(f"Saved {len(new_data)} records to CSV.")
+                            new_data.clear()  # Clear the list after saving
 
-# Check if any data was collected before saving
-if new_data:
-    # Create a DataFrame and save to CSV
-    new_df = pd.DataFrame(new_data)
-    new_df.to_csv(f"./steam_daily_files/steam_game_details_{datetime.now().strftime('%Y%m%d')}.csv", mode='w', header=True, index=False, sep='|')
-else:
-    print("No data collected to save.")
+                        logging.info(f"Processed app ID: {app_id} ({count}/{total_apps})")
+                    break  # Exit the while loop if processing is successful
 
+            except requests.exceptions.RequestException as e:
+                logging.error(f"Error fetching details for app ID {app_id}: {e}")
+                break  # Skip to the next app ID
 
-'''
+        # Rate limiting logic
+        request_count += 1
+        if request_count >= FETCH_LIMIT:
+            elapsed_time = time.time() - start_time
+            if elapsed_time < TIME_PERIOD:
+                time_to_wait = TIME_PERIOD - elapsed_time
+                logging.info(f"Rate limit reached. Waiting for {time_to_wait:.2f} seconds.")
+                time.sleep(time_to_wait)
+            request_count = 0
+            start_time = time.time()
 
-        # https://store.steampowered.com/api/appdetails?appids=1824430
+    # Save any remaining data
+    if new_data:
+        new_df = pd.DataFrame(new_data)
+        new_df.to_csv(csv_file_path, mode='a', header=not os.path.exists(csv_file_path), index=False, sep='|')
+        logging.info(f"Saved {len(new_data)} remaining records to CSV.")
 
-        data[type] == game -----------------> always filter to this by default
-        data[is_free] == false -------------> always filter to this by default
-
-        steam_game_id = data[steam_appid]
-        steam_game_name = game_details[name]
-        is_free: true/false
-        developer = game_details[developers][0]
-        publisher = publishers[0]
-
-        genre1_id = genres[0][id]
-        genre1_name = genres[0][description] ---> similar to GOG's Genres
-
-        genre2_id = genres[0][id]
-        genre2 = genres[1][description] ---> similar to GOG's Genres
-        release_date[date] ----> parse to be a DATETIME
-
-        requiredAge
-
-        on_windows_pc_platform = platforms[windows] (true/false)
-        on_apple_mac_platform = platforms[mac] (true/false)
-        on_linux_platform = platforms[linux] (true/false)
-
-        windows_pc_requirements_minimum     = pc_requirements[minimum]
-        windows_pc_requirements_recommended = pc_requirements[recommended]
-
-        apple_mac_requirements_minimum     = mac_requirements[minimum]
-        apple_mac_requirements_recommended = mac_requirements[recommended]
-
-        linux_requirements_minimum = pc_requirements[minimum]
-        linux_requirements_recommended = pc_requirements[recommended]
-
-        user_rating = content_descriptors[ratings]
-
-'''
+# Main execution
+logging.info("Starting the Steam scraper.")
+valid_app_ids = load_valid_app_ids()
+process_app_ids(valid_app_ids)  # Process the valid app IDs
+logging.info("Scraper execution completed.")

@@ -1,0 +1,2 @@
+steam_game_id|steam_game_name|is_free|developer|publisher|genre1_id|genre1_name|genre2_id|genre2_name|release_date|required_age|on_windows_pc_platform|on_apple_mac_platform|on_linux_platform|windows_pc_requirements_minimum|windows_pc_requirements_recommended|apple_mac_requirements_minimum|apple_mac_requirements_recommended|linux_requirements_minimum|linux_requirements_recommended|user_rating
+1086940|Baldur's Gate 3|False|Larian Studios|Larian Studios|25|Adventure|3|RPG|2023-08-03|17|True|True|False|||||||[]
