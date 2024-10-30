@@ -1,0 +1,8 @@
+# Ignore all JSON files
+*.json
+
+# Ignore all log files
+*.log
+
+# Ignore all CSV files
+*.csv
