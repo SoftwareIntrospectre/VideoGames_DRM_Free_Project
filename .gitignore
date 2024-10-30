@@ -6,3 +6,8 @@
 
 # Ignore all CSV files
 *.csv
+
+# Ignore specific subfolders
+./gog_daily_files/
+./steam_daily_files
+./DW_Test
