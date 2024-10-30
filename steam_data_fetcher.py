@@ -82,7 +82,7 @@ def process_app_ids(app_ids):
             logging.info(f"Using cached data for app ID: {app_id}")
             new_data.append(cache[app_id])
             continue
-        
+         
         game_details = fetch_game_details(app_id)
         if game_details:
             cache[app_id] = game_details  # Cache the successful response

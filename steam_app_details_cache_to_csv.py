@@ -72,7 +72,7 @@ def extract_data_to_csv(cache):
     df = pd.DataFrame(new_data)
     df.to_csv(OUTPUT_CSV_FILE, index=False, sep='|')
     logging.info(f"Extracted data saved to {OUTPUT_CSV_FILE}")
-
+ 
 # Main execution block
 if __name__ == "__main__":
     logging.info("Starting data extraction from cache.")  # Log the start of the extraction

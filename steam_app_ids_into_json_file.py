@@ -129,7 +129,7 @@ def fetch_app_list():
 def is_valid_app_id(app_id, retries=3, wait_time=1):
     """Check if the app ID is valid by querying the app details with error handling."""
     details_url = f'https://store.steampowered.com/api/appdetails?appids={app_id}'
-    
+     
     for attempt in range(retries):
         try:
             response = requests.get(details_url)

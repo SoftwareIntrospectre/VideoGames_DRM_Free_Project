@@ -231,7 +231,7 @@ def process_app_ids(app_ids):
 
         while retry_attempts < max_retries:
             try:
-                details_response = requests.get(details_url)
+                details_response = requests.get(details_url) 
                 details_response.raise_for_status()  # Raise an error for bad responses
 
                 # Successful response

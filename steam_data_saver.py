@@ -25,7 +25,7 @@ def save_to_csv(data, file_path):
     df = pd.DataFrame(data)
     df.to_csv(file_path, index=False)
     logging.info(f"Data saved to {file_path}.")
-
+ 
 def main(data):
     """
         Main function to save data to CSV.
