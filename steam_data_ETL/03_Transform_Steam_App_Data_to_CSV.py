@@ -11,43 +11,20 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-# Define the cache file and output pipe-delimited CSV file
 CACHE_FILE = './steam_daily_files/app_details_cache.json'
-OUTPUT_CSV_FILE = f"./steam_daily_files/steam_game_details_extracted_{datetime.now().strftime('%Y%m%d')}.csv"
+OUTPUT_CSV_FILE = f"./steam_daily_files/steam_game_details_exported_{datetime.now().strftime('%Y%m%d')}.csv"
 
 def load_cache():
-    """
-    Load the cached app details from the cache file.
-
-    Returns:
-        dict: A dictionary of cached app details if the cache file exists, 
-        otherwise an empty dictionary.
-    """
+    """Load the cached app details from the cache file."""
     if os.path.exists(CACHE_FILE):
         logging.info(f"CACHE_FILE: {CACHE_FILE} exists. Loading.")
         with open(CACHE_FILE, 'r') as f:
             return json.load(f)  # Load cached data into a dictionary
+    logging.warning(f"CACHE_FILE: {CACHE_FILE} does not exist.")
     return {}  # Return an empty dictionary if the cache file doesn't exist
 
-def clean_string(s):
-    """
-    Clean the string by removing double quotes.
-
-    Args:
-        s (str): The string to clean.
-
-    Returns:
-        str: The cleaned string.
-    """
-    return s.replace('"', '')
-
-def extract_data_to_csv(cache):
-    """
-    Extract relevant data from the cache and save it to a pipe-delimited CSV file.
-
-    Args:
-        cache (dict): The cached app details.
-    """
+def export_to_csv(cache):
+    """Transform the cached data into a CSV file."""
     new_data = []  # Initialize a list for new app details
 
     for app_id, game_details in cache.items():
@@ -80,14 +57,14 @@ def extract_data_to_csv(cache):
 
         # Collect relevant data into a dictionary
         data_entry = {
-            "steam_game_id": clean_string(str(game_details['steam_appid'])),
-            "steam_game_name": clean_string(game_details['name']),
+            "steam_game_id": game_details['steam_appid'],
+            "steam_game_name": game_details['name'],
             "price": price,  # Use the float price here
-            "developer": clean_string(game_details.get('developers', ['N/A'])[0]),
-            "publisher": clean_string(game_details.get('publishers', ['N/A'])[0]),
-            "genre1_id": clean_string(game_details['genres'][0]['id']) if game_details.get('genres') else 'N/A',
-            "genre1_name": clean_string(game_details['genres'][0]['description']) if game_details.get('genres') else 'N/A',
-            "release_date": clean_string(release_date_raw) if release_date_raw else 'N/A',
+            "developer": game_details.get('developers', ['N/A'])[0],
+            "publisher": game_details.get('publishers', ['N/A'])[0],
+            "genre1_id": game_details['genres'][0]['id'] if game_details.get('genres') else 'N/A',
+            "genre1_name": game_details['genres'][0]['description'] if game_details.get('genres') else 'N/A',
+            "release_date": game_details.get('release_date', {}).get('date', 'N/A'),
             "required_age": str(game_details.get('required_age', 0)),
             "on_windows_pc_platform": str(game_details.get('platforms', {}).get('windows', False)),
             "on_apple_mac_platform": str(game_details.get('platforms', {}).get('mac', False)),
@@ -96,14 +73,14 @@ def extract_data_to_csv(cache):
 
         new_data.append(data_entry)  # Add the data entry to the list
 
-    # Save the collected data to a pipe-delimited CSV
+    # Save the collected data to a CSV
     df = pd.DataFrame(new_data)
     df = df.fillna('')  # Fill NaNs with empty strings to avoid empty columns
-    df.to_csv(OUTPUT_CSV_FILE, index=False, sep='>')
+    df.to_csv(OUTPUT_CSV_FILE, index=False)
     logging.info(f"Extracted data saved to {OUTPUT_CSV_FILE}")
 
 # Main execution block
 if __name__ == "__main__":
-    logging.info("Starting data extraction from cache.")  # Log the start of the extraction
+    logging.info("Starting data export from cache.")  # Log the start of the export
     cache = load_cache()  # Load cached app details
-    extract_data_to_csv(cache)  # Extract and save data to CSV
+    export_to_csv(cache)  # Transform and save data to CSV
