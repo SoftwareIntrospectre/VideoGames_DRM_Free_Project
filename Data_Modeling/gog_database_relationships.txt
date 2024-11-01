@@ -1,0 +1,142 @@
+Table gog_games_staging {
+  stage_record_key int [pk, increment]
+  stage_record_loaded_datetime datetime [not null, default: current_timestamp]
+  stage_record_filename varchar
+  game_id bigint [unique, not null]
+  game_title varchar [not null]
+  game_release_date date
+  store_release_date date
+  final_price decimal(10, 2)
+  original_price decimal(10, 2)
+  price_discount_percentage decimal(5, 2)
+  price_discount_amount decimal(10, 2)
+  price_currency varchar
+  product_state varchar
+  store_link varchar
+  developer varchar
+  publisher varchar
+  operating_system_1 varchar
+  operating_system_2 varchar
+  operating_system_3 varchar
+  tag1 varchar
+  tag2 varchar
+  tag3 varchar
+  tag4 varchar
+  tag5 varchar
+  tag6 varchar
+  tag7 varchar
+  tag8 varchar
+  tag9 varchar
+  tag10 varchar
+}
+
+Table gog_game_title_dim {
+  gog_game_title_key int [pk, increment]
+  game_id bigint [not null]
+  title_name varchar [not null]
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+  Foreign Key (game_id) REFERENCES gog_games_staging(game_id) [on delete cascade]
+}
+
+Table gog_game_developer_dim {
+  gog_game_developer_key int [pk, increment]
+  game_id bigint [not null]
+  developer_name varchar [not null]
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+  Foreign Key (game_id) REFERENCES gog_games_staging(game_id) [on delete cascade]
+}
+
+Table gog_game_publisher_dim {
+  gog_game_publisher_key int [pk, increment]
+  game_id bigint [not null]
+  publisher_name varchar [not null]
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+  Foreign Key (game_id) REFERENCES gog_games_staging(game_id) [on delete cascade]
+}
+
+Table gog_game_operating_systems_dim {
+  gog_game_operating_system_key int [pk, increment]
+  game_id bigint [not null]
+  operating_system_1 varchar
+  operating_system_2 varchar
+  operating_system_3 varchar
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+  Foreign Key (game_id) REFERENCES gog_games_staging(game_id) [on delete cascade]
+}
+
+Table gog_game_currencies_dim {
+  gog_game_currency_key int [pk, increment]
+  price_currency varchar [not null, unique]
+}
+
+Table gog_game_release_dates_dim {
+  gog_game_release_date_key int [pk, increment]
+  game_id bigint [not null]
+  store_release_date date
+  original_release_date date
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+  Foreign Key (game_id) REFERENCES gog_games_staging(game_id) [on delete cascade]
+}
+
+Table gog_game_product_state_dim {
+  gog_game_product_state_key int [pk, increment]
+  game_id bigint [not null]
+  product_state varchar [not null]
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+  Foreign Key (game_id) REFERENCES gog_games_staging(game_id) [on delete cascade]
+}
+
+Table gog_game_tags_dim {
+  gog_game_tag_key int [pk, increment]
+  game_id bigint [not null]
+  tag_1 varchar
+  tag_2 varchar
+  tag_3 varchar
+  tag_4 varchar
+  tag_5 varchar
+  tag_6 varchar
+  tag_7 varchar
+  tag_8 varchar
+  tag_9 varchar
+  tag_10 varchar
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+  Foreign Key (game_id) REFERENCES gog_games_staging(game_id) [on delete cascade]
+}
+
+Table gog_games_fact {
+  gog_game_key int [pk, increment]
+  game_id bigint [not null]
+  gog_game_title_key int
+  gog_game_developer_key int
+  gog_game_publisher_key int
+  gog_game_currency_key int
+  gog_game_release_date_key int
+  gog_game_product_state_key int
+  original_price decimal(10, 2)
+  final_price decimal(10, 2)
+  price_discount_percentage decimal(5, 2)
+  price_discount_amount decimal(10, 2)
+  store_url varchar
+  load_date datetime [not null, default: current_timestamp]
+
+  Foreign Key (gog_game_title_key) REFERENCES gog_game_title_dim(gog_game_title_key)
+  Foreign Key (gog_game_developer_key) REFERENCES gog_game_developer_dim(gog_game_developer_key)
+  Foreign Key (gog_game_publisher_key) REFERENCES gog_game_publisher_dim(gog_game_publisher_key)
+  Foreign Key (gog_game_currency_key) REFERENCES gog_game_currencies_dim(gog_game_currency_key)
+  Foreign Key (gog_game_release_date_key) REFERENCES gog_game_release_dates_dim(gog_game_release_date_key)
+  Foreign Key (gog_game_product_state_key) REFERENCES gog_game_product_state_dim(gog_game_product_state_key)
+}

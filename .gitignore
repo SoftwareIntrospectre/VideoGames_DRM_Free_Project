@@ -8,6 +8,6 @@
 *.csv
 
 # Ignore specific subfolders
-./gog_daily_files/
-./steam_daily_files
-./DW_Test
+/gog_daily_files/
+/steam_daily_files
+/DW_Test
