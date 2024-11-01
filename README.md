@@ -2,6 +2,8 @@
 
 This project is intended to build a consolidated data set of which video games on Steam have an alternative on GOG.com (Good Old Games). GOG.com contains DRM-free copies (no Digital Rights Management). The intent is to extract, transform, load, and analyze data from both data sets to determine this.
 
+The objective is to create a resource for people to purchase a non-revokable license for a video game. Buying from GOG.com allows this.
+
 - **Extraction:** Python (JSON via API calls)
 - **Transformation:** Python (with pandas dataframes) and SQL
 - **Load:** Python and SQL (pandas and SQL Stored Procedures)
