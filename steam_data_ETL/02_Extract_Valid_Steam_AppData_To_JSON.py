@@ -53,9 +53,21 @@ def save_invalid_ids(invalid_ids):
             f.write(f"{app_id}\n")
     logging.info(f"Saved {len(invalid_ids)} invalid app IDs to {INVALID_IDS_FILE}.")
 
+def save_cache(cache):
+    """Save the valid app details to the cache file."""
+    with open(CACHE_FILE, 'w') as f:
+        json.dump(cache, f, indent=4)
+    logging.info(f"Cached {len(cache)} valid app details to {CACHE_FILE}.")
+
 def clean_price(price_str):
     """Extract numeric value from price string."""
-    cleaned_price_str = re.sub(r'[^\d.]', '', price_str)
+    cleaned_price_str = re.sub(r'[^\d.]', '', price_str)  # Remove non-numeric characters, except for '.'
+    
+    # Check for multiple decimal points and return 0 if invalid
+    if cleaned_price_str.count('.') > 1:
+        logging.warning(f"Invalid price format detected: {price_str}")
+        return 0
+
     return float(cleaned_price_str) if cleaned_price_str else 0
 
 def process_app_ids(app_ids):
@@ -71,7 +83,7 @@ def process_app_ids(app_ids):
         if app_id in cache:  # Use cached data if available
             logging.info(f"Using cached data for app ID: {app_id}")
             new_data[app_id] = cache[app_id]
-            continue
+            continue  # Skip to the next app ID if it’s already cached
 
         if app_id in invalid_ids:  # Skip invalid app IDs
             logging.info(f"Skipping invalid app ID: {app_id}")
@@ -109,6 +121,7 @@ def process_app_ids(app_ids):
 
                     # Cache valid game details
                     new_data[app_id] = game_details  
+                    save_cache(new_data)  # Save the cache after adding each valid game
                     logging.info(f"Processed app ID: {app_id} ({count}/{total_apps})")
                     break  # Exit retry loop on success
 
@@ -143,13 +156,13 @@ def process_app_ids(app_ids):
                 logging.error(f"Network error for app ID {app_id}: {e}")
                 break  # Skip to the next app ID on network error
 
-    # Save the valid game details to the cache file
-    with open(CACHE_FILE, 'w') as f:
-        json.dump(new_data, f, indent=4)
-    logging.info(f"Cached {len(new_data)} valid app details to {CACHE_FILE}")
 
 # Main execution block
 if __name__ == "__main__":
     logging.info("Starting to process app IDs.")
     app_ids = load_app_ids()  # Load app IDs from Part 1
+    # Load invalid IDs after loading app IDs
+    invalid_ids = load_invalid_ids()  # Load invalid IDs to skip during API calls
+    app_ids = [app_id for app_id in app_ids if app_id not in invalid_ids]  # Filter out invalid app IDs
+    logging.info(f"Filtered out {len(invalid_ids)} invalid app IDs. Proceeding with {len(app_ids)} valid app IDs.")
     process_app_ids(app_ids)  # Fetch and filter app details
