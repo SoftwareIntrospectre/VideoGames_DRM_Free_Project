@@ -8,3 +8,31 @@ Load: Python and SQL (pandas and SQL Stored Procedures)
 Data Modeling and Data Warehousing are also used here.
 
 The end-goal is to provide daily analytics for these combined datasets.
+
+
+
+Challenges so far:
+1. Determining which data to ignore
+   A. For Steam games, the vast majority are invalid cases
+      i. free games
+     ii. games without release dates or are in the future
+    iii. demos, sountracks, etc.
+
+   Valid games are paid, have been released, and are classified as "games".
+
+
+2. Creating the combined data model (warehouse)
+  A. GOG data is the main data, while Steam data is INNER JOINed
+    i. This is because the "business" outcome is to find all Steam games that are DRM-free, meaning they exist in GOG. That suits an INNER JOIN.
+
+ B. Maintaining this in a reasonable amount of time
+    i. Steam has over 200,000 apps on it, with a subset of those being games, and a subset of those being valid games. Even then, only a subset of those will have DRM-free options.
+        a. I want to build this Steam dataset anyway, for analytics downstream
+
+
+
+Solutions:
+1. Created a cache file to store processed games as they load
+2. Created a cache file to store invalid IDs (ones that are processed, but I know will never be valid cases)
+  A. These two create subsequent loads much faster, because I can check the JSON file saved containing ALL IDs, and essentially ignore pre-processed and invalid cases
+  B. In the database, this will help focus on UPSERTs instead of truncate/reloads.
