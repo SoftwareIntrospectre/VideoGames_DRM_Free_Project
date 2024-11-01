@@ -24,7 +24,7 @@ The end goal is to provide daily analytics for these combined datasets.
    - GOG data is the main data, while Steam data is INNER JOINed:
      1. This is because the "business" outcome is to find all Steam games that are DRM-free, meaning they exist in GOG. That suits an INNER JOIN.
    - Maintaining this in a reasonable amount of time:
-     1. Steam has over 200,000 apps on it, with a subset of those being games, and a subset of those being valid games. Even then, only a subset of those will have DRM-free options.
+     1. Steam has over 200,000 apps on it, with a subset of those being games, and a subset of those being valid games. Even then only a subset of those will have DRM-free options.
         - I want to build this Steam dataset anyway, for analytics downstream.
 
 ## Solutions
