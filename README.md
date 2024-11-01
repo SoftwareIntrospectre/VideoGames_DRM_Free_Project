@@ -10,7 +10,7 @@ Data Modeling and Data Warehousing are also used here.
 The end-goal is to provide daily analytics for these combined datasets.
 
 
-
+ 
 Challenges so far:
 1. Determining which data to ignore
    A. For Steam games, the vast majority are invalid cases
