@@ -34,7 +34,12 @@ def load_cache():
     if os.path.exists(CACHE_FILE):
         logging.info(f"CACHE_FILE: {CACHE_FILE} exists. Loading.")
         with open(CACHE_FILE, 'r') as f:
-            return json.load(f)  # Load cached data into a dictionary
+            try:
+                return json.load(f)  # Load cached data into a dictionary
+            
+            except:
+                logging.info("Not working. Passing. oashdgliajsdilfoj")   #TODO: Fix after 1/9/2025
+                pass
     return {}  # Return an empty dictionary if the cache file doesn't exist
 
 def load_invalid_ids():
