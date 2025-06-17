@@ -19,7 +19,7 @@ def process_csv(file_path):
 
     # Clear the staging table before processing the new data
     cursor.execute("DELETE FROM steam_staging;")
-    db_connection.commit()
+    db_connection.commit() 
 
     # Get the filename from the path
     stage_record_filename = os.path.basename(file_path)
