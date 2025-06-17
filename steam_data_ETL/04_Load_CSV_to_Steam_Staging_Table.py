@@ -57,9 +57,9 @@ def process_csv(file_path):
                 row[3],  # publisher_name
                 row[5],  # genre_1_id
                 row[6],  # genre_1_description
-                1 if row[8] == 'True' else 0,  # on_windows_pc_platform (convert to 1/0)
-                1 if row[9] == 'True' else 0,   # on_mac_platform_bool (convert to 1/0)
-                1 if row[10] == 'True' else 0,  # on_linux_platform_bool (convert to 1/0)
+                1 if row[8] == 'True' else 0,  # on_windows_pc_platform (convert to 1 or 0)
+                1 if row[9] == 'True' else 0,   # on_mac_platform_bool (convert to 1 or 0)
+                1 if row[10] == 'True' else 0,  # on_linux_platform_bool (convert to 1 or 0)
                 release_date  # release_date in YYYY-MM-DD format
             )
 
