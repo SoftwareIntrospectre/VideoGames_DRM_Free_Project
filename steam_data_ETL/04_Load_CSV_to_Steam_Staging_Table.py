@@ -8,11 +8,11 @@ def process_csv(file_path):
     # MySQL connection configuration using environment variables
     db_config = {
         'user': os.getenv('MYSQL_USER'),
-        'password': os.getenv('MYSQL_PASSWORD'),
+        'password': os.getenv(''),
         'host': 'localhost',
         'database': 'drm_free_games_db'  # Your database name
     }
-    
+
     # Connect to the MySQL database
     db_connection = mysql.connector.connect(**db_config)
     cursor = db_connection.cursor()
@@ -84,9 +84,17 @@ def process_csv(file_path):
 
 if __name__ == '__main__':
     # Define the CSV filename with dynamic date
-    csv_filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'steam_daily_files', f"steam_game_details_exported_{datetime.now().strftime('%Y%m%d')}.csv")
+    csv_filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..\steam_daily_files', f"steam_game_details_exported_{datetime.now().strftime('%Y%m%d')}.csv")
 
-    print(f"Trying to open: {csv_filename}")  # Debugging: Print out the full file path
+    # Replace forward slashes with backslashes (if any)
+    csv_filename = csv_filename.replace('/', '\\')
+    print(csv_filename)
 
-    # Load the daily file
-    process_csv(csv_filename)
+    if not os.path.isfile(csv_filename):
+        print(f"File does not exist: {csv_filename}")
+        exit  # Exit the function if the file is not found
+    
+    else:
+
+        # Load the daily file
+        process_csv(csv_filename)
