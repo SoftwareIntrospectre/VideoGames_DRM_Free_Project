@@ -8,7 +8,7 @@ def process_csv(file_path):
     # MySQL connection configuration using environment variables
     db_config = {
         'user': os.getenv('MYSQL_USER'),
-        'password': os.getenv(''),
+        'password': os.getenv('MYSQL_PASSWORD'),
         'host': 'localhost',
         'database': 'drm_free_games_db'  # Your database name
     }
