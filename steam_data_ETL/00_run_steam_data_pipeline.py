@@ -4,7 +4,7 @@ python_executable = r'C:/Users/tchac/Documents/Career/Projects\DataPlatformEngin
 
 print("Start: '01_Extract_Steam_AppIDs_To_JSON' Python script")
 subprocess.run(['python', './steam_data_etl/01_Extract_Steam_AppIDs_To_JSON.py'])
-print("End: '01_run_gog_data_pipeline' Python script")
+print("End: '01_Extract_Steam_AppIDs_To_JSON' Python script")
 
 print("Start: '02_Extract_Valid_Steam_AppData_To_JSON' Python script")
 subprocess.run(['python', './steam_data_etl/02_Extract_Valid_Steam_AppData_To_JSON.py'])
