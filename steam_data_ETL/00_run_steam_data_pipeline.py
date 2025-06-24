@@ -1,0 +1,19 @@
+import subprocess
+
+python_executable = r'C:/Users/tchac/Documents/Career/Projects\DataPlatformEngineering/VideoGames_DRM_Free_Project/venv/Scripts/python.exe'
+
+print("Start: '01_Extract_Steam_AppIDs_To_JSON' Python script")
+subprocess.run(['python', './steam_data_etl/01_Extract_Steam_AppIDs_To_JSON.py'])
+print("End: '01_Extract_Steam_AppIDs_To_JSON' Python script")
+
+print("Start: '02_Extract_Valid_Steam_AppData_To_JSON' Python script")
+subprocess.run(['python', './steam_data_etl/02_Extract_Valid_Steam_AppData_To_JSON.py'])
+print("End: '02_Extract_Valid_Steam_AppData_To_JSON' Python script")
+
+print("Start: '03_Transform_Steam_App_Data_to_CSV' Python script")
+subprocess.run(['python', './steam_data_etl/03_Transform_Steam_App_Data_to_CSV.py'])
+print("End: '03_Transform_Steam_App_Data_to_CSV' Python script")
+
+print("Start: '04_Load_CSV_to_Steam_Staging_Table' Python script")
+subprocess.run(['python', './steam_data_etl/04_Load_CSV_to_Steam_Staging_Table.py'])
+print("End: '04_Load_CSV_to_Steam_Staging_Table' Python script")
