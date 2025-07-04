@@ -19,32 +19,32 @@ def load_data_to_fact_and_dimensions():
     cursor.execute("""
         INSERT INTO steam_game_title_dim (game_id, title_name, effective_date)
         SELECT DISTINCT steam_game_id, steam_game_name, CURDATE()
-        FROM steam_staging
+        FROM steam_games_staging
         ON DUPLICATE KEY UPDATE end_date = NULL, current_flag = TRUE
     """)
 
     # Load unique developers
     cursor.execute("""
         INSERT INTO steam_game_developer_dim (game_id, developer_name, effective_date)
-        SELECT DISTINCT steam_game_id, developer_name, CURDATE()
-        FROM steam_staging
+        SELECT DISTINCT steam_game_id, developer, CURDATE()
+        FROM steam_games_staging
         ON DUPLICATE KEY UPDATE end_date = NULL, current_flag = TRUE
     """)
 
     # Load unique publishers
     cursor.execute("""
         INSERT INTO steam_game_publisher_dim (game_id, publisher_name, effective_date)
-        SELECT DISTINCT steam_game_id, publisher_name, CURDATE()
-        FROM steam_staging
+        SELECT DISTINCT steam_game_id, publisher, CURDATE()
+        FROM steam_games_staging
         ON DUPLICATE KEY UPDATE end_date = NULL, current_flag = TRUE
     """)
 
     # Load unique tags (assuming tags are stored in a single column in the staging table)
     cursor.execute("""
         INSERT INTO steam_game_tags_dim (game_id, tag_name, effective_date)
-        SELECT steam_game_id, genre_1_description, CURDATE()
-        FROM steam_staging
-        WHERE genre_1_description IS NOT NULL
+        SELECT steam_game_id, genre1_name, CURDATE()
+        FROM steam_games_staging
+        WHERE genre1_name IS NOT NULL
         ON DUPLICATE KEY UPDATE end_date = NULL, current_flag = TRUE
     """)
 
@@ -56,12 +56,12 @@ def load_data_to_fact_and_dimensions():
             (SELECT steam_game_title_key FROM steam_game_title_dim WHERE game_id = ss.steam_game_id AND current_flag = TRUE) AS title_key,
             (SELECT steam_game_developer_key FROM steam_game_developer_dim WHERE game_id = ss.steam_game_id AND current_flag = TRUE) AS developer_key,
             (SELECT steam_game_publisher_key FROM steam_game_publisher_dim WHERE game_id = ss.steam_game_id AND current_flag = TRUE) AS publisher_key,
-            ss.original_price,
-            ss.final_price,
-            ss.price_discount_percentage,
-            ss.price_discount_amount,
-            ss.store_url
-        FROM steam_staging ss
+            ss.price AS original_price,
+            ss.price AS final_price,  -- Assuming final price is the same as original price for now
+            NULL AS price_discount_percentage,  -- Placeholder for discount percentage
+            NULL AS price_discount_amount,  -- Placeholder for discount amount
+            NULL AS store_url  -- Placeholder for store URL
+        FROM steam_games_staging ss
     """)
 
     # Commit the changes and close the connection
