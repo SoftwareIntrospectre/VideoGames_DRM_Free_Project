@@ -1,8 +1,10 @@
 pandas
 requests
-mysql-connector-python
-mysql
+sqlalchemy==1.4.47  # Specify a compatible version of SQLAlchemy
+# mysql-connector-python  # Commented out since we're using SQLite
+# mysql  # Commented out since we're using SQLite
 ast
 apache-airflow
 asyncio
 aiohttp
+pymysql

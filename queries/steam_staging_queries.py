@@ -13,7 +13,7 @@ def query_database():
     cursor = db_connection.cursor()
 
     # Example query to fetch all records
-    cursor.execute("SELECT * FROM steam_staging;")
+    cursor.execute("select * from gog_games_staging LIMIT 10;")
     results = cursor.fetchall()
 
     for row in results:
