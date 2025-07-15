@@ -15,6 +15,7 @@ def process_csv(file_path):
     cursor = db_connection.cursor()
     print("Database connection established.")
 
+    # deletes from staging, if any data exists. Fresh load.
     cursor.execute("DELETE FROM steam_games_staging;")
     db_connection.commit()
 
@@ -25,6 +26,7 @@ def process_csv(file_path):
         headers = next(reader)
 
         for row in reader:
+            #...re-examine this.
             if len(row) < 12:
                 print(f"Skipping invalid row (not enough columns): {row}")
                 continue
