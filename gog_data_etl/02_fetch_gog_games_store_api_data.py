@@ -60,6 +60,12 @@ def append_to_csv(products, csv_filename):
             "Tag8": product.get('tags')[7] if len(product.get('tags', [])) > 7 else None,
             "Tag9": product.get('tags')[8] if len(product.get('tags', [])) > 8 else None,
             "Tag10": product.get('tags')[9] if len(product.get('tags', [])) > 9 else None
+
+            # features=single
+            # features=multi
+            # <a class="details__link ng-scope" href"/games/strategy" [...] </a>
+            # <span class="howlongtobeat-box__name" -------> howlong to beat: Main: 50, Main + Sides: 58 h, Completionist: 101.5 h, All Styles: 64.5 h
+                    # available on GOG.com. Good information to use.
         }
 
         new_data.append(data_entry)
