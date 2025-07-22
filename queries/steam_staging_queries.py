@@ -13,7 +13,24 @@ def query_database():
     cursor = db_connection.cursor()
 
     # Example query to fetch all records
-    cursor.execute("select * from gog_games_staging LIMIT 10;")
+    # cursor.execute("select name from gog_stage LIMIT 100;")
+    cursor.execute(
+        f"""
+        select 
+          gog.game_title
+        , gog.developer
+        , gog.publisher
+        , gog.game_release_date
+        , gog.final_price
+        , gog.price_discount_percentage
+        , gog.original_price  
+        , gog.tag1 || ', ' || gog.tag2 'genres'
+
+        from gog_games_staging gog
+        
+        limit 100
+        """
+    )
     results = cursor.fetchall()
 
     for row in results:
