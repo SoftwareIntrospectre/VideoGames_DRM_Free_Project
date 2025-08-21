@@ -2,11 +2,12 @@ import mysql.connector
 import pandas as pd
 from dash import Dash, dcc, html, Input, Output
 import dash_bootstrap_components as dbc
+import os
 
 # Database connection configuration
 db_config = {
-    'user': 'your_username',
-    'password': 'your_password',
+    'user': os.getenv('MYSQL_USER'),
+    'password': os.getenv('MYSQL_PASSWORD'),
     'host': 'localhost',
     'database': 'drm_free_games_db'
 }
@@ -77,7 +78,7 @@ def update_table(limit):
         return html.Tr([html.Td("No data available")])
     
     # Create table headers
-    headers = [html.Thead(html.Tr([html.Th(col) for col in df.columns])))]
+    headers = [html.Thead(html.Tr([html.Th(col) for col in df.columns]))]
 
     # Create table rows
     rows = [html.Tr([html.Td(df.iloc[i][col]) for col in df.columns]) for i in range(len(df))]
@@ -86,4 +87,5 @@ def update_table(limit):
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run(debug=True)
+[]
