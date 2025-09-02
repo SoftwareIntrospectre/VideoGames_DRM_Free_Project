@@ -1,13 +1,23 @@
-# Ignore all JSON files
+# Ignore JSON, log, CSV files
 *.json
-
-# Ignore all log files
 *.log
-
-# Ignore all CSV files
 *.csv
 
-# Ignore specific subfolders
-/gog_daily_files/
-/steam_daily_files
-/DW_Test
+# Ignore virtual environment folders
+airflow_venv/
+venv/
+
+# Ignore Python cache files
+__pycache__/
+
+# Ignore Python bytecode files
+*.pyc
+*.pyo
+*.pyd
+
+# Airflow DB & logs
+airflow.db
+logs/
+
+# Ignore .Python virtual env config files
+.Python

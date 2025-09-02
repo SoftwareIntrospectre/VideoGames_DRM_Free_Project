@@ -68,7 +68,8 @@ def export_to_csv(cache):
             "required_age": str(game_details.get('required_age', 0)),
             "on_windows_pc_platform": str(game_details.get('platforms', {}).get('windows', False)),
             "on_apple_mac_platform": str(game_details.get('platforms', {}).get('mac', False)),
-            "on_linux_platform": str(game_details.get('platforms', {}).get('linux', False))
+            "on_linux_platform": str(game_details.get('platforms', {}).get('linux', False)),
+            "game_image_icon": game_details['capsule_imagev5']
         }
 
         new_data.append(data_entry)  # Add the data entry to the list
