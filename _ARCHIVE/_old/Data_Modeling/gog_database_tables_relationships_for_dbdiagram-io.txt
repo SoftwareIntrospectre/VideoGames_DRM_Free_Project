@@ -1,0 +1,154 @@
+Table gog_games_staging {
+  stage_record_key int [pk, increment]
+  stage_record_loaded_datetime datetime [not null, default: 'current_timestamp']
+  stage_record_filename varchar(255) [not null]
+  game_id bigint [not null, unique] // GOG.com ID
+  game_title varchar(255) [not null]
+  game_release_date date
+  store_release_date date
+  final_price decimal(10, 2)
+  original_price decimal(10, 2)
+  price_discount_percentage decimal(5, 2)
+  price_discount_amount decimal(10, 2)
+  price_currency varchar(10)
+  product_state varchar(50)
+  store_link varchar(255)
+  developer varchar(255)
+  publisher varchar(255)
+  operating_system_1 varchar(50)
+  operating_system_2 varchar(50)
+  operating_system_3 varchar(50)
+  tag1 varchar(50)
+  tag2 varchar(50)
+  tag3 varchar(50)
+  tag4 varchar(50)
+  tag5 varchar(50)
+  tag6 varchar(50)
+  tag7 varchar(50)
+  tag8 varchar(50)
+  tag9 varchar(50)
+  tag10 varchar(50)
+}
+
+Table gog_game_title_dim {
+  gog_game_title_key int [pk, increment]
+  game_id bigint [not null]
+  title_name varchar(255) [not null]
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+}
+
+Table gog_game_developer_dim {
+  gog_game_developer_key int [pk, increment]
+  game_id bigint [not null]
+  developer_name varchar(255) [not null]
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+}
+
+Table gog_game_publisher_dim {
+  gog_game_publisher_key int [pk, increment]
+  game_id bigint [not null]
+  publisher_name varchar(255) [not null]
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+}
+
+Table gog_game_operating_systems_dim {
+  gog_game_operating_system_key int [pk, increment]
+  game_id bigint [not null]
+  operating_system_1 varchar(50)
+  operating_system_2 varchar(50)
+  operating_system_3 varchar(50)
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+}
+
+Table gog_game_currencies_dim {
+  gog_game_currency_key int [pk, increment]
+  price_currency varchar(10) [not null, unique]
+}
+
+Table gog_game_release_dates_dim {
+  gog_game_release_date_key int [pk, increment]
+  game_id bigint [not null]
+  store_release_date date
+  original_release_date date
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+}
+
+Table gog_game_product_state_dim {
+  gog_game_product_state_key int [pk, increment]
+  game_id bigint [not null]
+  product_state varchar(50) [not null]
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+}
+
+Table gog_game_tags_dim {
+  gog_game_tag_key int [pk, increment]
+  game_id bigint [not null]
+  tag_1 varchar(50)
+  tag_2 varchar(50)
+  tag_3 varchar(50)
+  tag_4 varchar(50)
+  tag_5 varchar(50)
+  tag_6 varchar(50)
+  tag_7 varchar(50)
+  tag_8 varchar(50)
+  tag_9 varchar(50)
+  tag_10 varchar(50)
+  effective_date date [not null]
+  end_date date
+  current_flag boolean [not null, default: true]
+}
+
+Table gog_games_fact {
+  gog_game_key int [pk, increment]
+  game_id bigint [not null]
+  gog_game_title_key int
+  gog_game_developer_key int
+  gog_game_publisher_key int
+  gog_game_currency_key int
+  gog_game_release_date_key int
+  gog_game_product_state_key int
+  original_price decimal(10, 2)
+  final_price decimal(10, 2)
+  price_discount_percentage decimal(5, 2)
+  price_discount_amount decimal(10, 2)
+  store_url varchar(255)
+  load_date datetime [not null, default: 'current_timestamp']
+}
+
+Table game_changes_log {
+  log_id int [pk, increment]
+  game_id bigint [not null]
+  change_type enum('INSERT', 'UPDATE') [not null]
+  change_datetime datetime [not null, default: 'current_timestamp']
+  details text
+}
+
+// Relationships
+Ref: gog_games_staging.game_id < gog_game_title_dim.game_id
+Ref: gog_games_staging.game_id < gog_game_developer_dim.game_id
+Ref: gog_games_staging.game_id < gog_game_publisher_dim.game_id
+Ref: gog_games_staging.game_id < gog_game_operating_systems_dim.game_id
+Ref: gog_games_staging.game_id < gog_game_release_dates_dim.game_id
+Ref: gog_games_staging.game_id < gog_game_product_state_dim.game_id
+Ref: gog_games_staging.game_id < gog_game_tags_dim.game_id
+
+Ref: gog_games_fact.gog_game_title_key < gog_game_title_dim.gog_game_title_key
+Ref: gog_games_fact.gog_game_developer_key < gog_game_developer_dim.gog_game_developer_key
+Ref: gog_games_fact.gog_game_publisher_key < gog_game_publisher_dim.gog_game_publisher_key
+Ref: gog_games_fact.gog_game_currency_key < gog_game_currencies_dim.gog_game_currency_key
+Ref: gog_games_fact.gog_game_release_date_key < gog_game_release_dates_dim.gog_game_release_date_key
+Ref: gog_games_fact.gog_game_product_state_key < gog_game_product_state_dim.gog_game_product_state_key
+
+Ref: game_changes_log.game_id < gog_games_staging.game_id
