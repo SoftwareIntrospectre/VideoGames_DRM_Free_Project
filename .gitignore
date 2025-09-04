@@ -2,10 +2,13 @@
 *.json
 *.log
 *.csv
+*.txt
+*.yaml
 
 # Ignore virtual environment folders
 airflow_venv/
 venv/
+.env
 
 # Ignore Python cache files
 __pycache__/
